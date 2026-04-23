@@ -1,0 +1,236 @@
+@model List<Loopin.Models.Video>
+
+@{
+    ViewData["Title"] = "Trend Videolar";
+}
+
+<style>
+    body {
+        background: radial-gradient(circle at top, #141428, #0b0b14);
+        color: white;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(90deg, #f59e0b, #ef4444);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        color: #9ca3af;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: #fbbf24;
+        margin-bottom: 25px;
+    }
+
+    /* VIDEO CARD */
+    .video-card {
+        border-radius: 18px;
+        overflow: hidden;
+        background: #16162a;
+        transition: 0.3s ease;
+        position: relative;
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .video-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+        border-color: rgba(245,158,11,0.5);
+    }
+
+    .video-img {
+        height: 190px;
+        width: 100%;
+        object-fit: cover;
+        transition: 0.4s;
+    }
+
+    .video-card:hover .video-img {
+        transform: scale(1.08);
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 190px;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .video-card:hover .overlay {
+        opacity: 1;
+    }
+
+    .play-icon {
+        font-size: 44px;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(255,255,255,0.4);
+    }
+
+    .trend-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: linear-gradient(45deg,#f59e0b,#ef4444);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .card-body {
+        padding: 14px;
+    }
+
+    .video-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #f3f4f6;
+        margin-bottom: 5px;
+    }
+
+    .video-desc {
+        font-size: 12px;
+        color: #9ca3af;
+        height: 38px;
+        overflow: hidden;
+    }
+
+    .video-meta {
+        font-size: 12px;
+        color: #cbd5e1;
+        margin-top: 10px;
+    }
+
+    .btn-modern {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 6px 14px;
+        transition: 0.2s;
+    }
+
+    .btn-modern:hover {
+        transform: scale(1.05);
+    }
+
+    .empty-box {
+        text-align: center;
+        margin-top: 120px;
+        padding: 40px;
+        background: #16162a;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .empty-box h2 {
+        font-weight: 800;
+        background: linear-gradient(90deg, #f59e0b, #ef4444);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .empty-box p {
+        color: #9ca3af;
+    }
+</style>
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="container empty-box">
+        <h2>🔥 Henüz trend video yok</h2>
+        <p>Videolar beğeni ve izlenme kazandıkça burada görünecek 🚀</p>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+
+        <div class="page-title">Trendleri Keşfet</div>
+        <div class="page-subtitle">En çok izlenen ve yükselen videolar</div>
+
+        <h2 class="section-title">🔥 Trend Videolar</h2>
+
+        <div class="row g-4">
+
+            @foreach (var video in Model)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <div class="video-card">
+
+                        <!-- BADGE -->
+                        <div class="trend-badge">🔥 TREND</div>
+
+                        <!-- VIDEO -->
+                        <video class="video-img" muted>
+                            <source src="@video.VideoUrl" type="video/mp4" />
+                        </video>
+
+                        <!-- OVERLAY -->
+                        <div class="overlay">
+                            <div class="play-icon">▶</div>
+                        </div>
+
+                        <!-- CONTENT -->
+                        <div class="card-body">
+
+                            <div class="video-title">@video.Baslik</div>
+
+                            <div class="video-desc">
+                                @video.Aciklama
+                            </div>
+
+                            <div class="video-meta">
+                                👁 @video.IzlenmeSayisi izlenme • 👍 @video.LikeSayisi beğeni
+                            </div>
+
+                            <div class="mt-2 d-flex gap-2 flex-wrap">
+
+                                <a asp-controller="Home"
+                                   asp-action="Izle"
+                                   asp-route-id="@video.Id"
+                                   class="btn btn-outline-light btn-modern">
+                                    ▶ İzle
+                                </a>
+
+                                <form asp-controller="Home"
+                                      asp-action="DahaSonraEkle"
+                                      asp-route-id="@video.Id"
+                                      method="post">
+
+                                    <button class="btn btn-outline-warning btn-modern">
+                                        ⏳ Listeye Ekle
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+}

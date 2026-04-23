@@ -1,0 +1,251 @@
+﻿@model List<Video>
+
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<style>
+    body {
+        background: #0f0f1a;
+        color: white;
+    }
+
+    .page-title {
+        font-weight: 700;
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        color: #888;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: #c084fc;
+        margin-bottom: 25px;
+    }
+
+    /* CARD */
+    .video-card {
+        border-radius: 18px;
+        overflow: hidden;
+        background: #1a1a2e;
+        transition: 0.3s;
+        position: relative;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .video-card:hover {
+        transform: translateY(-8px) scale(1.03);
+        box-shadow: 0 30px 70px rgba(0,0,0,0.7);
+        border-color: rgba(168,85,247,0.4);
+    }
+
+    .video-img {
+        height: 200px;
+        width: 100%;
+        object-fit: cover;
+        transition: 0.4s;
+    }
+
+    .video-card:hover .video-img {
+        transform: scale(1.12);
+    }
+
+    /* OVERLAY */
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 200px;
+        width: 100%;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2));
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .video-card:hover .overlay {
+        opacity: 1;
+    }
+
+    .play-icon {
+        font-size: 42px;
+        color: white;
+        background: rgba(255,255,255,0.15);
+        padding: 10px 18px;
+        border-radius: 50%;
+        backdrop-filter: blur(5px);
+    }
+
+    /* BODY */
+    .card-body {
+        padding: 14px;
+    }
+
+    .video-title {
+        font-weight: 600;
+        font-size: 15px;
+        color: #e5e5e5;
+        margin-bottom: 6px;
+    }
+
+    .video-desc {
+        font-size: 12px;
+        color: #aaa;
+        height: 38px;
+        overflow: hidden;
+    }
+
+    .video-meta {
+        font-size: 12px;
+        color: #888;
+        margin-top: 8px;
+    }
+
+    .video-extra {
+        font-size: 11px;
+        color: #777;
+        margin-top: 4px;
+    }
+
+    /* BUTTONS */
+    .btn-pill {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 5px 14px;
+        transition: 0.2s;
+    }
+
+    .btn-pill:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-watch {
+        border: 1px solid #6c63ff;
+        color: #6c63ff;
+    }
+
+    .btn-watch:hover {
+        background: #6c63ff;
+        color: white;
+    }
+
+    .btn-later {
+        border: 1px solid #facc15;
+        color: #facc15;
+    }
+
+    .btn-later:hover {
+        background: #facc15;
+        color: black;
+    }
+
+    /* EMPTY */
+    .empty-box {
+        text-align: center;
+        margin-top: 100px;
+    }
+
+    .empty-box h2 {
+        color: #a855f7;
+    }
+
+    .btn-upload {
+        border-radius: 999px;
+        margin-top: 15px;
+        padding: 10px 20px;
+    }
+</style>
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="container empty-box">
+        <h2>🎬 Henüz video yok</h2>
+        <p>İlk videonu yükleyerek platformu başlat 🚀</p>
+        <a href="/Home/Yukle" class="btn btn-primary btn-upload">🚀 Video Yükle</a>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+
+        <div class="page-title">Hoş Geldin 👋</div>
+        <div class="page-subtitle">Senin için önerilen içerikler burada</div>
+
+        <h2 class="section-title">🔥 En Yeni Videolar</h2>
+
+        <div class="row g-4">
+
+            @foreach (var video in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6">
+
+                    <div class="video-card">
+
+                        <!-- IMAGE -->
+                        <img src="@video.KapakResmiUrl" class="video-img" />
+
+                        <!-- OVERLAY -->
+                        <div class="overlay">
+                            <div class="play-icon">▶</div>
+                        </div>
+
+                        <!-- CONTENT -->
+                        <div class="card-body">
+
+                            <div class="video-title">
+                                @video.Baslik
+                            </div>
+
+                            <div class="video-desc">
+                                @video.Aciklama
+                            </div>
+
+                            <div class="video-meta">
+                                👁 @video.IzlenmeSayisi • 👍 @video.LikeSayisi
+                            </div>
+
+                            <div class="video-extra">
+                                👤 @video.Kullanici?.KullaniciAdi • 
+                                📅 @video.YuklenmeTarihi.ToString("dd MMM yyyy")
+                            </div>
+
+                            <!-- ACTIONS -->
+                            <div class="mt-2 d-flex gap-2 flex-wrap">
+
+                                <!-- İZLE -->
+                                <a asp-controller="Home"
+                                   asp-action="Izle"
+                                   asp-route-id="@video.Id"
+                                   class="btn btn-pill btn-watch">
+                                    ▶ İzle
+                                </a>
+
+                                <!-- DAHA SONRA -->
+                                <form asp-controller="Home"
+                                      asp-action="DahaSonraEkle"
+                                      asp-route-id="@video.Id"
+                                      method="post">
+                                    <button class="btn btn-pill btn-later">
+                                        ⏳ Kaydet
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    </div>
+}

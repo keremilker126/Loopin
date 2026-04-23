@@ -1,0 +1,256 @@
+@model List<Loopin.Models.Video>
+@{
+    var abonelikler = ViewBag.Abonelikler as List<Abonelik>;
+}
+
+<style>
+    body {
+        background-color: #0f0f1a;
+        color: white;
+    }
+
+    .page-title {
+        font-weight: 700;
+        color: #c084fc;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: #fff;
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+
+    /* LEFT PANEL */
+    .panel {
+        background: #1a1a2e;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .user-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-radius: 12px;
+        background: #22223b;
+        margin-bottom: 10px;
+        transition: 0.2s;
+    }
+
+    .user-item:hover {
+        transform: scale(1.02);
+        background: #2f2f50;
+    }
+
+    /* VIDEO CARD */
+    .video-card {
+        border-radius: 16px;
+        overflow: hidden;
+        background: #1a1a2e;
+        transition: 0.3s;
+        position: relative;
+    }
+
+    .video-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .video-img {
+        height: 200px;
+        width: 100%;
+        object-fit: cover;
+        transition: 0.3s;
+    }
+
+    .video-card:hover .video-img {
+        transform: scale(1.08);
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 200px;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .video-card:hover .overlay {
+        opacity: 1;
+    }
+
+    .play-icon {
+        font-size: 40px;
+        color: white;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .video-title {
+        font-weight: 600;
+        font-size: 16px;
+        color: #e5e5e5;
+    }
+
+    .video-desc {
+        font-size: 13px;
+        color: #aaa;
+        height: 40px;
+        overflow: hidden;
+    }
+
+    .video-meta {
+        font-size: 12px;
+        color: #888;
+        margin-top: 8px;
+    }
+
+    .btn-unsub {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+
+    .btn-watch {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 5px 12px;
+    }
+
+    /* EMPTY */
+    .empty-box {
+        text-align: center;
+        padding: 30px;
+        color: #aaa;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <div class="page-title">📺 Aboneliklerim</div>
+
+    <div class="row">
+
+        <!-- SOL PANEL -->
+        <div class="col-lg-4 mb-4">
+
+            <div class="panel">
+
+                <div class="section-title">👤 Abone Olduğum Kullanıcılar</div>
+
+                @if (abonelikler == null || !abonelikler.Any())
+                {
+                    <div class="empty-box">
+                        Henüz kimseye abone olmadın.
+                    </div>
+                }
+                else
+                {
+                    @foreach (var abone in abonelikler)
+                    {
+                        <div class="user-item">
+
+                            <span>👤 @abone.AboneOlunan.KullaniciAdi</span>
+
+                            <form asp-controller="Home"
+                                  asp-action="AbonelikToggle"
+                                  asp-route-id="@abone.AboneOlunanId"
+                                  method="post">
+
+                                <button class="btn btn-sm btn-outline-danger btn-unsub">
+                                    Çık
+                                </button>
+
+                            </form>
+
+                        </div>
+                    }
+                }
+
+            </div>
+
+        </div>
+
+        <!-- SAĞ PANEL -->
+        <div class="col-lg-8">
+
+            <div class="section-title">🎬 Abonelik Videoları</div>
+
+            @if (!Model.Any())
+            {
+                <div class="panel text-center text-muted">
+                    Abone olduğun kullanıcıların henüz videosu yok.
+                </div>
+            }
+            else
+            {
+                <div class="row g-4">
+
+                    @foreach (var video in Model)
+                    {
+                        <div class="col-md-6 col-lg-4">
+
+                            <div class="video-card">
+
+                                <!-- VIDEO -->
+                                <video class="video-img" muted>
+                                    <source src="@video.VideoUrl" type="video/mp4" />
+                                </video>
+
+                                <!-- OVERLAY -->
+                                <div class="overlay">
+                                    <div class="play-icon">▶</div>
+                                </div>
+
+                                <div class="card-body">
+
+                                    <div class="video-title">
+                                        @video.Baslik
+                                    </div>
+
+                                    <div class="video-desc">
+                                        @video.Aciklama
+                                    </div>
+
+                                    <div class="video-meta">
+                                        👤 @video.Kullanici?.KullaniciAdi <br />
+                                        📅 @video.YuklenmeTarihi.ToString("dd MMM yyyy") <br />
+                                        👁 @video.IzlenmeSayisi | 👍 @video.LikeSayisi
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <a asp-controller="Home"
+                                           asp-action="Izle"
+                                           asp-route-id="@video.Id"
+                                           class="btn btn-outline-light btn-watch">
+                                            ▶ İzle
+                                        </a>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

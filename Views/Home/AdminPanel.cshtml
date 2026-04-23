@@ -1,0 +1,148 @@
+@model Tuple<List<Loopin.Models.Video>, List<Loopin.Models.Kullanici>, List<string>>
+@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+<style>
+    body { background:#0f0f1a; color:white; }
+    .page-title { font-size:28px; font-weight:700; margin-bottom:5px; }
+    .page-sub { color:#888; margin-bottom:25px; }
+    .section-box { background:#1a1a2e; padding:20px; border-radius:18px; margin-bottom:25px; box-shadow:0 15px 40px rgba(0,0,0,0.4); }
+    .section-title { font-weight:700; margin-bottom:15px; color:#c084fc; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:15px; }
+    .card { background:#111827; border-radius:14px; padding:14px; transition:0.3s; border:1px solid rgba(255,255,255,0.05); }
+    .card:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,0.6); border-color:rgba(168,85,247,0.4); }
+    .title { font-weight:600; color:#e5e5e5; }
+    .meta { font-size:13px; color:#aaa; margin-top:4px; }
+    .badge-ok { color:#22c55e; font-weight:600; }
+    .badge-no { color:#ef4444; font-weight:600; }
+    .icon-btn { border:none; border-radius:10px; padding:7px 12px; cursor:pointer; transition:0.2s; margin-top:10px; }
+    .delete-btn { background:rgba(239,68,68,0.15); color:#ef4444; width:100%; }
+    .delete-btn:hover { background:#ef4444; color:white; transform:scale(1.03); }
+    .form-control { border-radius:12px; background:#111827; border:none; color:white; padding:10px; }
+    .form-control:focus { box-shadow:0 0 0 2px #6c63ff; background:#111827; color:white; }
+    .btn-primary { background:linear-gradient(45deg,#9333ea,#6366f1); border:none; padding:8px 16px; border-radius:999px; color:white; font-weight:600; }
+</style>
+
+<div class="container mt-4">
+    <div class="page-title">⚙ Admin Panel</div>
+    <div class="page-sub">Kullanıcı ve videoları yönet</div>
+
+    <!-- 🔍 ARAMA -->
+    <div class="section-box">
+        <form asp-action="AdminPanel" method="get" class="d-flex gap-2">
+            <input type="text" name="searchTerm" 
+                   value="@Context.Request.Query["searchTerm"]" 
+                   class="form-control" 
+                   placeholder="🔍 Kullanıcı veya video ara..." />
+            <button class="btn-primary">Ara</button>
+        </form>
+    </div>
+
+    <!-- USERS -->
+    <div class="section-box">
+        <div class="section-title">👤 Kullanıcılar</div>
+        <div class="grid">
+            @foreach (var user in Model.Item2)
+            {
+                <div class="card">
+                    <div class="title">👤 @user.KullaniciAdi</div>
+                    <div class="meta">📧 @user.Email</div>
+                    <div class="meta">
+                        Durum:
+                        @if (user.EmailOnayli == true)
+                        { <span class="badge-ok">✔ Onaylı</span> }
+                        else { <span class="badge-no">✖ Onaysız</span> }
+                    </div>
+                    <form asp-action="KullaniciSil" asp-controller="Home" method="post">
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <button class="icon-btn delete-btn">🗑 Kullanıcı Sil</button>
+                    </form>
+                    <form asp-action="EmailEngelle" asp-controller="Home" method="post">
+                        <input type="hidden" name="email" value="@user.Email" />
+                        <button class="icon-btn delete-btn">🚫 Email Engelle</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- VIDEOS -->
+    <div class="section-box">
+        <div class="section-title">🎬 Videolar</div>
+        <div class="grid">
+            @foreach (var video in Model.Item1)
+            {
+                <div class="card">
+                    <div class="title">🎬 @video.Baslik</div>
+                    <div class="meta">👤 @video.Kullanici?.KullaniciAdi</div>
+                    <div class="meta">👁 @video.IzlenmeSayisi • 👍 @video.LikeSayisi</div>
+                    <form asp-action="VideoSil" asp-controller="Home" method="post">
+                        <input type="hidden" name="id" value="@video.Id" />
+                        <button class="icon-btn delete-btn">🗑 Video Sil</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- BLOCKED EMAILS -->
+    <div class="section-box">
+    <div class="section-title">🚫 Engellenen E‑postalar</div>
+    @if (!Model.Item3.Any())
+    {
+        <div class="meta">Henüz engellenmiş e‑posta yok.</div>
+    }
+    else
+    {
+        <ul>
+            @foreach (var email in Model.Item3)
+            {
+                <li class="meta">
+                    📧 @email
+                    <form asp-action="EmailEngelKaldir" asp-controller="Home" method="post" style="display:inline;">
+                        <input type="hidden" name="email" value="@email" />
+                        <button class="icon-btn delete-btn" style="margin-left:10px;">🔓 Engeli Kaldır</button>
+                    </form>
+                </li>
+            }
+        </ul>
+    }
+</div>
+</div>
+<!-- ONAY MODAL -->
+
+<script>
+    let formToSubmit = null;
+    let videoForm = null;
+
+    function openModal(form) {
+        formToSubmit = form;
+        document.getElementById("confirmModal").style.display = "flex";
+        return false;
+    }
+
+    function closeModal() {
+        document.getElementById("confirmModal").style.display = "none";
+        formToSubmit = null;
+    }
+
+    document.getElementById("confirmYes").addEventListener("click", function () {
+        if (formToSubmit) formToSubmit.submit();
+    });
+
+    function openVideoModal(form) {
+        videoForm = form;
+        document.getElementById("videoConfirmModal").style.display = "flex";
+        return false;
+    }
+
+    function closeVideoModal() {
+        document.getElementById("videoConfirmModal").style.display = "none";
+        videoForm = null;
+    }
+
+    document.getElementById("videoConfirmYes").addEventListener("click", function () {
+        if (videoForm) videoForm.submit();
+    });
+</script>

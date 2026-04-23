@@ -1,0 +1,89 @@
+@{
+    ViewBag.Title = "E-posta Onayı";
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+        height: 100vh;
+        margin: 0;
+    }
+
+    .verify-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 120px;
+    }
+
+    .verify-box {
+        width: 100%;
+        max-width: 420px;
+        padding: 30px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        text-align: center;
+        color: white;
+    }
+
+    .icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+
+    .title {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .desc {
+        font-size: 14px;
+        color: #aaa;
+        margin-bottom: 20px;
+    }
+
+    .btn-back {
+        border-radius: 999px;
+        padding: 10px 20px;
+        background: linear-gradient(45deg,#9333ea,#6366f1);
+        border: none;
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+        transition: 0.3s;
+    }
+
+    .btn-back:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+</style>
+
+<div class="verify-wrapper">
+    <div class="verify-box">
+
+        @if (ViewBag.SuccessMessage != null)
+        {
+            <div class="icon success">✅</div>
+            <div class="title">E-posta Doğrulandı</div>
+            <div class="desc">@ViewBag.SuccessMessage</div>
+
+            <a href="/Home/Giris" class="btn-back">🚀 Giriş Yap</a>
+        }
+        else
+        {
+            <div class="icon error">❌</div>
+            <div class="title">Onay Başarısız</div>
+            <div class="desc">Doğrulama işlemi başarısız oldu veya süresi doldu.</div>
+
+            <a href="/Home/Kayit" class="btn-back">📝 Tekrar Kayıt Ol</a>
+        }
+
+    </div>
+</div>

@@ -1,0 +1,177 @@
+@model List<Loopin.Models.Video>
+
+<style>
+    body {
+        background: radial-gradient(circle at top, #141428, #0b0b14);
+        color: white;
+    }
+
+    .page-title {
+        font-size: 26px;
+        font-weight: 800;
+        background: linear-gradient(90deg, #60a5fa, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
+    }
+
+    .video-card {
+        border-radius: 18px;
+        overflow: hidden;
+        background: #16162a;
+        transition: 0.3s ease;
+        position: relative;
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .video-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        border-color: rgba(99,102,241,0.4);
+    }
+
+    .video-img {
+        height: 190px;
+        width: 100%;
+        object-fit: cover;
+        transition: 0.4s;
+    }
+
+    .video-card:hover .video-img {
+        transform: scale(1.08);
+    }
+
+    .card-body {
+        padding: 14px;
+    }
+
+    .video-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #f3f4f6;
+        margin-bottom: 5px;
+    }
+
+    .video-meta {
+        font-size: 12px;
+        color: #cbd5e1;
+        margin-bottom: 10px;
+    }
+
+    .btn-modern {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 6px 14px;
+        transition: 0.2s;
+    }
+
+    .btn-modern:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-danger-modern {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 6px 14px;
+    }
+
+    .empty-box {
+        text-align: center;
+        padding: 70px;
+        background: #16162a;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.05);
+        color: #9ca3af;
+    }
+
+    .empty-box h3 {
+        font-weight: 800;
+        background: linear-gradient(90deg, #60a5fa, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .watch-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: linear-gradient(45deg,#6366f1,#a855f7);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+</style>
+
+<div class="container mt-4">
+
+    <div class="page-title">⏳ Daha Sonra İzle</div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-box">
+            <h3>Liste boş</h3>
+            <p>Henüz kaydettiğin bir video yok</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var video in Model)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <div class="video-card">
+
+                        <!-- badge -->
+                        <div class="watch-badge">📌 Kaydedildi</div>
+
+                        <!-- video -->
+                        <video class="video-img" muted>
+                            <source src="@video.VideoUrl" type="video/mp4" />
+                        </video>
+
+                        <div class="card-body">
+
+                            <div class="video-title">@video.Baslik</div>
+
+                            <div class="video-meta">
+                                👁 @video.IzlenmeSayisi • 👍 @video.LikeSayisi
+                            </div>
+
+                            <div class="d-flex gap-2 flex-wrap">
+
+                                <a asp-controller="Home"
+                                   asp-action="Izle"
+                                   asp-route-id="@video.Id"
+                                   class="btn btn-outline-light btn-modern">
+                                    ▶ İzle
+                                </a>
+
+                                <form asp-controller="Home"
+                                      asp-action="DahaSonraSil"
+                                      asp-route-id="@video.Id"
+                                      method="post">
+
+                                    <button class="btn btn-outline-danger btn-danger-modern">
+                                        ❌ Kaldır
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

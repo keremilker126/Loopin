@@ -1,0 +1,127 @@
+@{
+    ViewBag.Title = "Giriş Yap";
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+        height: 100vh;
+        margin: 0;
+    }
+
+    .auth-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 90px; /* 🔥 yukarı hizalama */
+    }
+
+    .auth-container {
+        width: 100%;
+        max-width: 420px;
+        padding: 35px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        color: white;
+    }
+
+    .auth-title {
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: 600;
+        color: #c084fc;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        background: #111827;
+        border: none;
+        color: white;
+        padding: 10px;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 2px #6c63ff;
+        background: #111827;
+        color: white;
+    }
+
+    label {
+        margin-bottom: 5px;
+        font-size: 14px;
+        color: #bbb;
+    }
+
+    .btn-auth {
+        background: linear-gradient(45deg, #9333ea, #6366f1);
+        border: none;
+        width: 100%;
+        padding: 12px;
+        border-radius: 999px;
+        color: white;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .btn-auth:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+
+    .error {
+        color: #ff6b6b;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    a {
+        color: #a855f7;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="auth-wrapper">
+    <div class="auth-container">
+
+        <h2 class="auth-title">🎬 Loopin Giriş</h2>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="error">@ViewBag.ErrorMessage</div>
+        }
+
+        <form asp-action="Giris" method="post">
+
+            <div class="mb-3">
+                <label>E-posta</label>
+                <input type="email" name="Email" class="form-control" placeholder="ornek@mail.com" required />
+            </div>
+
+            <div class="mb-3">
+                <label>Şifre</label>
+                <input type="password" name="Sifre" class="form-control" placeholder="••••••••" required />
+            </div>
+
+            <button type="submit" class="btn-auth">
+                🚀 Giriş Yap
+            </button>
+
+        </form>
+
+        <p class="text-center mt-3">
+            Hesabın yok mu?
+            <a asp-action="Kayit">Kayıt Ol</a>
+        </p>
+
+        <p class="text-center mt-2">
+            <a asp-action="SifremiUnuttum">🔑 Şifremi unuttum</a>
+        </p>
+
+    </div>
+</div>

@@ -1,0 +1,237 @@
+@model Tuple<Loopin.Models.Kullanici, List<Loopin.Models.Video>>
+
+<style>
+    body {
+        background: radial-gradient(circle at top, #141428, #0b0b14);
+        color: white;
+    }
+
+    .profile-box {
+        background: linear-gradient(135deg, #1a1a2e, #232347);
+        padding: 28px;
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+        margin-bottom: 30px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .profile-name {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(90deg, #c084fc, #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .user-email {
+        color: #9ca3af;
+        font-size: 14px;
+        margin-top: 4px;
+    }
+
+    .user-stats {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #e5e7eb;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .profile-actions {
+        margin-top: 15px;
+    }
+
+    .btn-sub {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 6px 14px;
+        transition: 0.2s;
+    }
+
+    .btn-sub:hover {
+        transform: scale(1.05);
+    }
+
+    /* VIDEO CARD */
+    .video-card {
+        border-radius: 18px;
+        overflow: hidden;
+        background: #16162a;
+        transition: 0.3s ease;
+        position: relative;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    .video-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 55px rgba(0,0,0,0.55);
+    }
+
+    .video-img {
+        height: 190px;
+        width: 100%;
+        object-fit: cover;
+        transition: 0.4s;
+    }
+
+    .video-card:hover .video-img {
+        transform: scale(1.08);
+    }
+
+    .card-body {
+        padding: 14px;
+    }
+
+    .video-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #f3f4f6;
+    }
+
+    .video-desc {
+        font-size: 13px;
+        color: #9ca3af;
+        height: 38px;
+        overflow: hidden;
+        margin-top: 3px;
+    }
+
+    .video-meta {
+        font-size: 12px;
+        color: #cbd5e1;
+        margin-top: 10px;
+        line-height: 1.6;
+    }
+
+    .btn-watch {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 6px 14px;
+    }
+
+    .empty-box {
+        text-align: center;
+        padding: 60px;
+        color: #9ca3af;
+        background: #16162a;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    h4 {
+        font-weight: 700;
+        color: #e5e5e5;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <!-- PROFILE -->
+    <div class="profile-box">
+
+        <div class="profile-name">👤 @Model.Item1.KullaniciAdi</div>
+        <div class="user-email">@Model.Item1.Email</div>
+
+        <div class="user-stats">
+            <span>📺 Abone Sayısı: <b>@ViewBag.AboneSayisi</b></span>
+        </div>
+
+        @if (Context.Session.GetString("UserEmail") != null &&
+             Context.Session.GetString("UserEmail") != Model.Item1.Email)
+        {
+            <div class="profile-actions">
+                <form asp-controller="Home"
+                      asp-action="AbonelikToggle"
+                      asp-route-id="@Model.Item1.Id"
+                      method="post">
+
+                    @if (ViewBag.AbonelikVar == true)
+                    {
+                        <button class="btn btn-outline-danger btn-sub">
+                            Abonelikten Çık
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-success btn-sub">
+                            Abone Ol
+                        </button>
+                    }
+
+                </form>
+            </div>
+        }
+
+    </div>
+
+    <!-- VIDEOS -->
+    <h4>🎬 Videolar</h4>
+
+    @if (!Model.Item2.Any())
+    {
+        <div class="empty-box">
+            Bu kullanıcının henüz videosu yok.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var video in Model.Item2)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6">
+
+                    <div class="video-card">
+
+                        <video class="video-img" muted>
+                            <source src="@video.VideoUrl" type="video/mp4" />
+                        </video>
+
+                        <div class="card-body">
+
+                            <div class="video-title">@video.Baslik</div>
+
+                            <div class="video-desc">
+                                @video.Aciklama
+                            </div>
+
+                            <div class="video-meta">
+                                📅 @video.YuklenmeTarihi.ToString("dd MMM yyyy") <br />
+                                👁 @video.IzlenmeSayisi • 👍 @video.LikeSayisi
+                            </div>
+
+                            <div class="mt-2 d-flex gap-2 flex-wrap">
+
+                                <a asp-controller="Home"
+                                   asp-action="Izle"
+                                   asp-route-id="@video.Id"
+                                   class="btn btn-outline-light btn-watch">
+                                    ▶ İzle
+                                </a>
+
+                                <form asp-controller="Home"
+                                      asp-action="DahaSonraEkle"
+                                      asp-route-id="@video.Id"
+                                      method="post">
+
+                                    <button class="btn btn-outline-warning btn-sm btn-watch">
+                                        ⏳ Listeye Ekle
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

@@ -1,0 +1,277 @@
+@model Tuple<List<Loopin.Models.Video>, List<Loopin.Models.Kullanici>>
+
+@{
+    ViewData["Title"] = "Arama Sonuçları";
+}
+
+<style>
+    body {
+        background: radial-gradient(circle at top, #141428, #0b0b14);
+        color: #fff;
+    }
+
+    .page-title {
+        font-weight: 800;
+        font-size: 28px;
+        background: linear-gradient(90deg, #c084fc, #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-weight: 700;
+        font-size: 18px;
+        margin: 25px 0 15px;
+        color: #e5e5e5;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* CARD GRID */
+    .video-card {
+        border-radius: 18px;
+        overflow: hidden;
+        background: #16162a;
+        transition: 0.3s ease;
+        position: relative;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    .video-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+
+    .video-img {
+        height: 190px;
+        width: 100%;
+        object-fit: cover;
+        transition: 0.4s;
+    }
+
+    .video-card:hover .video-img {
+        transform: scale(1.1);
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 190px;
+        background: rgba(0,0,0,0.35);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .video-card:hover .overlay {
+        opacity: 1;
+    }
+
+    .play-icon {
+        font-size: 42px;
+        color: white;
+        filter: drop-shadow(0 0 10px #000);
+    }
+
+    .card-body {
+        padding: 14px;
+    }
+
+    .video-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #f1f1f1;
+        margin-bottom: 4px;
+    }
+
+    .video-desc {
+        font-size: 13px;
+        color: #a1a1aa;
+        height: 36px;
+        overflow: hidden;
+    }
+
+    .video-meta {
+        font-size: 12px;
+        color: #cbd5e1;
+        margin-top: 10px;
+    }
+
+    /* USER CARD */
+    .user-card {
+        background: #16162a;
+        padding: 14px 16px;
+        border-radius: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        transition: 0.25s;
+        border: 1px solid transparent;
+    }
+
+    .user-card:hover {
+        transform: translateY(-3px);
+        border-color: #3b82f6;
+        background: #1b1b33;
+    }
+
+    .user-name a {
+        color: #c084fc;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .user-name a:hover {
+        color: #a855f7;
+    }
+
+    .user-email {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .btn-sub {
+        border-radius: 999px;
+        font-size: 12px;
+        padding: 6px 14px;
+        transition: 0.2s;
+    }
+
+    .btn-sub:hover {
+        transform: scale(1.05);
+    }
+
+    .empty-text {
+        color: #9ca3af;
+        font-size: 14px;
+        padding: 10px 0;
+    }
+
+    /* container spacing fix */
+    .container {
+        padding-bottom: 60px;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <div class="page-title">🔍 Arama Sonuçları</div>
+
+    <!-- VIDEOS -->
+    <div class="section-title">🎬 Videolar</div>
+
+    @if (!Model.Item1.Any())
+    {
+        <div class="empty-text">Video bulunamadı.</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var video in Model.Item1.Take(60))
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="video-card">
+
+                        <video class="video-img" muted>
+                            <source src="@video.VideoUrl" type="video/mp4" />
+                        </video>
+
+                        <div class="overlay">
+                            <div class="play-icon">▶</div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="video-title">@video.Baslik</div>
+                            <div class="video-desc">@video.Aciklama</div>
+
+                            <div class="video-meta">
+                                👤 <a asp-controller="Home" asp-action="Kullanici" asp-route-id="@video.KullaniciId">
+                                    @video.Kullanici?.KullaniciAdi
+                                </a>
+                                <br />
+                                📅 @video.YuklenmeTarihi.ToString("dd MMM yyyy")
+                            </div>
+
+                            <div class="mt-2 d-flex gap-2">
+                                <a asp-controller="Home"
+                                   asp-action="Izle"
+                                   asp-route-id="@video.Id"
+                                   class="btn btn-outline-light btn-sm btn-sub">
+                                    ▶ İzle
+                                </a>
+
+                                <form asp-controller="Home"
+                                      asp-action="DahaSonraEkle"
+                                      asp-route-id="@video.Id"
+                                      method="post">
+                                    <button class="btn btn-sm btn-outline-warning btn-sub">
+                                        ⏳ Listeye Ekle
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- USERS -->
+    <div class="section-title mt-5">👤 Kullanıcılar</div>
+
+    @if (!Model.Item2.Any())
+    {
+        <div class="empty-text">Kullanıcı bulunamadı.</div>
+    }
+    else
+    {
+        @foreach (var user in Model.Item2.Take(60))
+        {
+            <div class="user-card">
+                <div>
+                    <div class="user-name">
+                        👤 <a asp-controller="Home"
+                               asp-action="Kullanici"
+                               asp-route-id="@user.Id">
+                            @user.KullaniciAdi
+                        </a>
+                    </div>
+                    <div class="user-email">@user.Email</div>
+                </div>
+
+                @if (Context.Session.GetString("UserEmail") != null &&
+                     Context.Session.GetString("UserEmail") != user.Email)
+                {
+                    <form asp-controller="Home"
+                          asp-action="AbonelikToggle"
+                          asp-route-id="@user.Id"
+                          method="post">
+
+                        @if (ViewBag.Abonelikler != null &&
+                             ((List<int>)ViewBag.Abonelikler).Contains(user.Id))
+                        {
+                            <button class="btn btn-sm btn-outline-danger btn-sub">
+                                Abonelikten Çık
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-success btn-sub">
+                                Abone Ol
+                            </button>
+                        }
+                    </form>
+                }
+            </div>
+        }
+    }
+
+</div>
