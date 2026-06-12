@@ -1,0 +1,758 @@
+@model List<Loopin.Models.Video>
+
+@{
+    ViewData["Title"] = "Trend Videolar";
+}
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+<style>
+
+    :root {
+        --orange: #f59e0b;
+        --red: #ef4444;
+        --pink: #ff4fd8;
+        --bg: #08080f;
+        --card: rgba(255,255,255,0.05);
+        --border: rgba(255,255,255,0.08);
+        --text: #ffffff;
+        --muted: #9fa4b7;
+    }
+
+    /* PAGE */
+
+    .trend-page {
+        position: relative;
+        overflow: hidden;
+        animation: fadeIn 0.4s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .trend-page::before {
+        content: "";
+        position: fixed;
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(rgba(245,158,11,0.12), transparent 70%);
+        top: -250px;
+        right: -200px;
+        pointer-events: none;
+    }
+
+    .trend-page::after {
+        content: "";
+        position: fixed;
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(rgba(239,68,68,0.10), transparent 70%);
+        bottom: -300px;
+        left: -200px;
+        pointer-events: none;
+    }
+
+    /* HERO */
+
+    .trend-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 38px;
+        padding: 42px;
+        margin-bottom: 36px;
+
+        background:
+            radial-gradient(circle at top left,
+            rgba(245,158,11,0.18),
+            transparent 35%),
+
+            radial-gradient(circle at bottom right,
+            rgba(239,68,68,0.16),
+            transparent 35%),
+
+            rgba(255,255,255,0.05);
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        backdrop-filter: blur(24px);
+
+        box-shadow:
+            0 25px 60px rgba(0,0,0,0.35),
+            inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .trend-badge-top {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+
+        padding: 10px 18px;
+        border-radius: 999px;
+
+        background: rgba(255,255,255,0.06);
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        color: #ffe3b0;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        margin-bottom: 18px;
+    }
+
+    .trend-title {
+        font-size: 54px;
+        font-weight: 900;
+        line-height: 1.05;
+        margin-bottom: 14px;
+        letter-spacing: -1px;
+    }
+
+    .trend-title span {
+        background: linear-gradient(135deg,
+            #f59e0b,
+            #ef4444,
+            #ff4fd8);
+
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .trend-subtitle {
+        max-width: 700px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.8;
+    }
+
+    /* HEADER */
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 30px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title i {
+        color: #f59e0b;
+    }
+
+    .section-subtitle {
+        color: var(--muted);
+        margin-top: 5px;
+        font-size: 14px;
+    }
+
+    /* GRID */
+
+    .trend-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 28px;
+    }
+
+    /* CARD */
+
+    .trend-card {
+        position: relative;
+        overflow: hidden;
+
+        border-radius: 32px;
+
+        background: rgba(255,255,255,0.05);
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        backdrop-filter: blur(24px);
+
+        transition: 0.35s ease;
+
+        box-shadow:
+            0 18px 40px rgba(0,0,0,0.28);
+    }
+
+    .trend-card:hover {
+        transform: translateY(-10px);
+
+        border-color: rgba(245,158,11,0.35);
+
+        box-shadow:
+            0 35px 70px rgba(0,0,0,0.5),
+            0 0 40px rgba(245,158,11,0.12);
+    }
+
+    /* VIDEO */
+
+    .video-wrapper {
+        position: relative;
+        overflow: hidden;
+        height: 220px;
+    }
+
+    .video-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: 0.5s ease;
+        background: black;
+    }
+
+    .trend-card:hover .video-preview {
+        transform: scale(1.08);
+    }
+
+    /* OVERLAY */
+
+    .video-overlay {
+        position: absolute;
+        inset: 0;
+
+        background:
+            linear-gradient(to top,
+            rgba(0,0,0,0.78),
+            rgba(0,0,0,0.10));
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        opacity: 0;
+        transition: 0.3s ease;
+    }
+
+    .trend-card:hover .video-overlay {
+        opacity: 1;
+    }
+
+    .play-btn {
+        width: 82px;
+        height: 82px;
+
+        border-radius: 50%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: rgba(255,255,255,0.14);
+
+        border: 1px solid rgba(255,255,255,0.18);
+
+        backdrop-filter: blur(14px);
+
+        color: white;
+
+        font-size: 28px;
+
+        transform: scale(0.85);
+        transition: 0.3s ease;
+    }
+
+    .trend-card:hover .play-btn {
+        transform: scale(1);
+    }
+
+    /* BADGES */
+
+    .card-top {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        right: 14px;
+
+        display: flex;
+        justify-content: space-between;
+
+        z-index: 5;
+    }
+
+    .trend-tag {
+        padding: 8px 14px;
+
+        border-radius: 999px;
+
+        font-size: 11px;
+        font-weight: 800;
+
+        letter-spacing: 0.5px;
+
+        backdrop-filter: blur(10px);
+
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .trend-hot {
+        background: linear-gradient(135deg,
+            rgba(245,158,11,0.85),
+            rgba(239,68,68,0.85));
+
+        color: white;
+
+        box-shadow:
+            0 10px 25px rgba(239,68,68,0.28);
+    }
+
+    .trend-views {
+        background: rgba(0,0,0,0.4);
+        color: white;
+    }
+
+    /* CONTENT */
+
+    .trend-content {
+        padding: 24px;
+    }
+
+    .video-title {
+        font-size: 19px;
+        font-weight: 800;
+        line-height: 1.4;
+        margin-bottom: 10px;
+        color: white;
+    }
+
+    .video-desc {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+        height: 48px;
+        overflow: hidden;
+        margin-bottom: 18px;
+    }
+
+    /* META */
+
+    .video-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        gap: 14px;
+
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+    }
+
+    .creator-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .creator-avatar {
+        width: 46px;
+        height: 46px;
+
+        border-radius: 16px;
+
+        background: linear-gradient(135deg,
+            #f59e0b,
+            #ef4444);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: white;
+
+        font-weight: 800;
+
+        box-shadow:
+            0 12px 28px rgba(239,68,68,0.3);
+    }
+
+    .creator-name {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .creator-date {
+        font-size: 12px;
+        color: #8f94aa;
+    }
+
+    .stats-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        font-size: 13px;
+        color: #d7dae7;
+    }
+
+    /* BUTTONS */
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-modern {
+        flex: 1;
+
+        border: none;
+
+        border-radius: 20px;
+
+        padding: 15px;
+
+        font-size: 14px;
+        font-weight: 700;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        text-decoration: none;
+
+        transition: 0.25s ease;
+    }
+
+    .btn-watch {
+        background: linear-gradient(135deg,
+            #f59e0b,
+            #ef4444);
+
+        color: white;
+
+        box-shadow:
+            0 15px 35px rgba(239,68,68,0.28);
+    }
+
+    .btn-watch:hover {
+        transform: translateY(-2px);
+
+        color: white;
+
+        box-shadow:
+            0 20px 40px rgba(239,68,68,0.42);
+    }
+
+    .btn-save {
+        background: rgba(255,255,255,0.05);
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        color: white;
+    }
+
+    .btn-save:hover {
+        background: rgba(255,255,255,0.10);
+        transform: translateY(-2px);
+    }
+
+    /* EMPTY */
+
+    .empty-wrapper {
+        min-height: 70vh;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .empty-box {
+        width: 100%;
+        max-width: 760px;
+
+        text-align: center;
+
+        padding: 60px;
+
+        border-radius: 38px;
+
+        background: rgba(255,255,255,0.05);
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        backdrop-filter: blur(24px);
+
+        box-shadow:
+            0 25px 60px rgba(0,0,0,0.35);
+    }
+
+    .empty-icon {
+        width: 120px;
+        height: 120px;
+
+        border-radius: 30px;
+
+        margin: auto;
+        margin-bottom: 28px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: linear-gradient(135deg,
+            #f59e0b,
+            #ef4444);
+
+        color: white;
+
+        font-size: 46px;
+
+        box-shadow:
+            0 25px 50px rgba(239,68,68,0.35);
+    }
+
+    .empty-title {
+        font-size: 38px;
+        font-weight: 900;
+        margin-bottom: 12px;
+
+        background: linear-gradient(135deg,
+            #f59e0b,
+            #ef4444);
+
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .empty-text {
+        color: var(--muted);
+        line-height: 1.8;
+    }
+
+    /* MOBILE */
+
+    @@media(max-width:768px) {
+
+        .trend-hero {
+            padding: 28px;
+            border-radius: 28px;
+        }
+
+        .trend-title {
+            font-size: 38px;
+        }
+
+        .trend-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .empty-box {
+            padding: 40px 24px;
+        }
+    }
+
+</style>
+
+<div class="trend-page">
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="empty-wrapper">
+
+            <div class="empty-box">
+
+                <div class="empty-icon">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
+
+                <div class="empty-title">
+                    Henüz Trend Video Yok
+                </div>
+
+                <div class="empty-text">
+                    Videolar izlenip beğeni aldıkça burada görünmeye başlayacak 🚀
+                </div>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+
+        <!-- HERO -->
+        <div class="trend-hero">
+
+            <div class="trend-badge-top">
+                <i class="fa-solid fa-chart-line"></i>
+                Şu Anda Yükselişte
+            </div>
+
+            <div class="trend-title">
+                Trendleri <span>Keşfet</span>
+            </div>
+
+            <div class="trend-subtitle">
+                Platformda en çok izlenen, en çok konuşulan ve
+                yükselişe geçen videolar burada listeleniyor.
+            </div>
+
+        </div>
+
+        <!-- SECTION -->
+        <div class="section-header">
+
+            <div>
+
+                <div class="section-title">
+                    <i class="fa-solid fa-fire-flame-curved"></i>
+                    Trend Videolar
+                </div>
+
+                <div class="section-subtitle">
+                    Şu anda popüler olan içerikler
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- GRID -->
+        <div class="trend-grid">
+
+            @foreach (var video in Model)
+            {
+                <div class="trend-card">
+
+                    <!-- VIDEO -->
+                    <div class="video-wrapper">
+
+                        <!-- TAGS -->
+                        <div class="card-top">
+
+                            <div class="trend-tag trend-hot">
+                                🔥 TREND
+                            </div>
+
+                            <div class="trend-tag trend-views">
+                                👁 @video.IzlenmeSayisi
+                            </div>
+
+                        </div>
+
+                        <!-- VIDEO -->
+                        <video class="video-preview"
+                               muted
+                               preload="metadata">
+
+                            <source src="@video.VideoUrl"
+                                    type="video/mp4" />
+
+                        </video>
+
+                        <!-- OVERLAY -->
+                        <div class="video-overlay">
+
+                            <div class="play-btn">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- CONTENT -->
+                    <div class="trend-content">
+
+                        <div class="video-title">
+                            @video.Baslik
+                        </div>
+
+                        <div class="video-desc">
+                            @video.Aciklama
+                        </div>
+
+                        <!-- META -->
+                        <div class="video-meta">
+
+                            <div class="creator-box">
+
+                                <div class="creator-avatar">
+                                    @(string.IsNullOrWhiteSpace(video.Kullanici?.KullaniciAdi)
+                                        ? "?"
+                                        : video.Kullanici!.KullaniciAdi!.Substring(0, 1).ToUpper())
+                                </div>
+
+                                <div>
+
+                                    <div class="creator-name">
+                                        @video.Kullanici?.KullaniciAdi
+                                    </div>
+
+                                    <div class="creator-date">
+                                        @video.YuklenmeTarihi.ToString("dd MMM yyyy")
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="stats-box">
+                                <span>👍 @video.LikeSayisi</span>
+                            </div>
+
+                        </div>
+
+                        <!-- BUTTONS -->
+                        <div class="action-buttons">
+
+                            <!-- WATCH -->
+                            <a asp-controller="Home"
+                               asp-action="Izle"
+                               asp-route-id="@video.Id"
+                               class="btn-modern btn-watch">
+
+                                <i class="fa-solid fa-play"></i>
+                                İzle
+
+                            </a>
+
+                            <!-- SAVE -->
+                            <form asp-controller="Home"
+                                  asp-action="DahaSonraEkle"
+                                  asp-route-id="@video.Id"
+                                  method="post"
+                                  style="flex:1;">
+
+                                <button class="btn-modern btn-save w-100">
+
+                                    <i class="fa-regular fa-bookmark"></i>
+                                    Kaydet
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

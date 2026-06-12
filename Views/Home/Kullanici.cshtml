@@ -1,0 +1,722 @@
+@model Tuple<Loopin.Models.Kullanici, List<Loopin.Models.Video>>
+
+<style>
+
+    :root{
+        --purple:#7c5cff;
+        --purple2:#b14dff;
+        --bg:#070710;
+        --card:rgba(255,255,255,0.06);
+        --border:rgba(255,255,255,0.08);
+        --text:#ffffff;
+        --muted:#a8a8c7;
+    }
+
+    body {
+
+        background:
+            radial-gradient(circle at top left, rgba(124,92,255,0.20), transparent 30%),
+            radial-gradient(circle at bottom right, rgba(177,77,255,0.18), transparent 30%),
+            linear-gradient(160deg,#05050c,#0d0e1c 55%,#090912);
+
+        color: white;
+        overflow-x:hidden;
+    }
+
+    body::before{
+        content:"";
+        position:fixed;
+        inset:0;
+
+        background-image:
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+
+        background-size:40px 40px;
+
+        pointer-events:none;
+        z-index:-1;
+    }
+
+    .container{
+        max-width:1600px;
+    }
+
+    /* PROFILE */
+
+    .profile-box {
+
+        position:relative;
+        overflow:hidden;
+
+        padding: 34px;
+
+        border-radius: 34px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.07),
+                rgba(255,255,255,0.03)
+            );
+
+        backdrop-filter: blur(28px);
+
+        box-shadow:
+            0 25px 70px rgba(0,0,0,0.45),
+            0 0 40px rgba(124,92,255,0.08);
+
+        margin-bottom: 34px;
+
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .profile-box::before{
+        content:"";
+        position:absolute;
+        inset:0;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(124,92,255,0.10),
+                transparent 35%,
+                rgba(177,77,255,0.08)
+            );
+
+        pointer-events:none;
+    }
+
+    .profile-top{
+        display:flex;
+        align-items:center;
+        gap:20px;
+        flex-wrap:wrap;
+    }
+
+    .profile-avatar{
+
+        width:92px;
+        height:92px;
+
+        border-radius:28px;
+
+        background:
+            linear-gradient(
+                135deg,
+                var(--purple),
+                var(--purple2)
+            );
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        font-size:38px;
+        color:white;
+
+        box-shadow:
+            0 16px 40px rgba(124,92,255,0.40);
+
+        animation: floaty 3s ease-in-out infinite;
+    }
+
+    @@keyframes floaty{
+
+        0%{
+            transform:translateY(0px);
+        }
+
+        50%{
+            transform:translateY(-5px);
+        }
+
+        100%{
+            transform:translateY(0px);
+        }
+    }
+
+    .profile-name {
+
+        font-size: 36px;
+
+        font-weight: 800;
+
+        letter-spacing:-1px;
+
+        background: linear-gradient(90deg, #ffffff, #d8cbff);
+
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .user-email {
+
+        color: var(--muted);
+
+        font-size: 14px;
+
+        margin-top: 6px;
+    }
+
+    .user-stats {
+
+        margin-top: 22px;
+
+        display: flex;
+
+        gap: 16px;
+
+        flex-wrap: wrap;
+    }
+
+    .stat-box{
+
+        padding:14px 18px;
+
+        border-radius:20px;
+
+        background:rgba(255,255,255,0.05);
+
+        border:1px solid rgba(255,255,255,0.06);
+
+        font-size:14px;
+
+        color:#e5e7eb;
+
+        backdrop-filter:blur(10px);
+    }
+
+    .profile-actions {
+        margin-top: 24px;
+    }
+
+    /* BUTTONS */
+
+    .btn-sub,
+    .btn-watch {
+
+        border:none !important;
+
+        border-radius:999px;
+
+        font-size:13px;
+
+        padding:10px 18px;
+
+        font-weight:700;
+
+        transition:.25s ease;
+
+        color:white !important;
+        text-decoration: none;
+    }
+
+    .btn-sub{
+
+        background:
+            linear-gradient(
+                135deg,
+                var(--purple),
+                var(--purple2)
+            );
+
+        box-shadow:
+            0 12px 30px rgba(124,92,255,0.30);
+    }
+
+    .btn-watch{
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(124,92,255,0.95),
+                rgba(177,77,255,0.92)
+            );
+
+        box-shadow:
+            0 10px 25px rgba(124,92,255,0.25);
+    }
+
+    .btn-sub:hover,
+    .btn-watch:hover {
+
+        transform: translateY(-3px) scale(1.03);
+
+        box-shadow:
+            0 16px 35px rgba(124,92,255,0.40);
+    }
+
+    /* SECTION */
+
+    .section-title{
+
+        font-size:28px;
+
+        font-weight:800;
+
+        margin-bottom:18px;
+
+        letter-spacing:-.5px;
+    }
+
+    /* FILTER */
+
+    .filter-bar {
+
+        display: flex;
+
+        gap: 12px;
+
+        flex-wrap: wrap;
+
+        margin-bottom: 24px;
+    }
+
+    .filter-btn {
+
+        border-radius: 999px;
+
+        padding: 10px 18px;
+
+        font-size: 13px;
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        background: rgba(255,255,255,0.04);
+
+        color: #d1d5db;
+
+        transition: all .25s ease;
+
+        backdrop-filter: blur(12px);
+
+        text-decoration: none;
+
+        font-weight:600;
+    }
+
+    .filter-btn:hover {
+
+        background: rgba(255,255,255,0.07);
+
+        color: white;
+
+        transform: translateY(-2px);
+
+        border-color: rgba(124,92,255,0.20);
+
+        box-shadow:
+            0 10px 25px rgba(124,92,255,0.12);
+    }
+
+    .filter-btn.active {
+
+        background:
+            linear-gradient(
+                135deg,
+                var(--purple),
+                var(--purple2)
+            );
+
+        color: white;
+
+        border: none;
+
+        box-shadow:
+            0 0 25px rgba(124,92,255,0.35);
+    }
+
+    /* VIDEO CARD */
+
+    .video-card {
+
+        border-radius: 28px;
+
+        overflow: hidden;
+
+        position: relative;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.06),
+                rgba(255,255,255,0.03)
+            );
+
+        border:1px solid rgba(255,255,255,0.08);
+
+        transition: .35s ease;
+
+        box-shadow:
+            0 15px 35px rgba(0,0,0,0.28);
+    }
+
+    .video-card::before{
+        content:"";
+        position:absolute;
+        inset:0;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(124,92,255,0.08),
+                transparent 35%,
+                rgba(177,77,255,0.06)
+            );
+
+        opacity:0;
+        transition:.3s ease;
+
+        pointer-events:none;
+    }
+
+    .video-card:hover::before{
+        opacity:1;
+    }
+
+    .video-card:hover {
+
+        transform: translateY(-10px);
+
+        border-color: rgba(124,92,255,0.20);
+
+        box-shadow:
+            0 30px 60px rgba(0,0,0,0.50),
+            0 0 30px rgba(124,92,255,0.12);
+    }
+
+    .video-thumb-wrapper{
+        overflow:hidden;
+        position:relative;
+    }
+
+    .video-img {
+
+        height: 210px;
+
+        width: 100%;
+
+        object-fit: cover;
+
+        transition: .45s ease;
+
+        background:black;
+    }
+
+    .video-card:hover .video-img {
+        transform: scale(1.08);
+    }
+
+    .video-overlay{
+        position:absolute;
+        inset:0;
+
+        background:
+            linear-gradient(
+                to top,
+                rgba(0,0,0,0.6),
+                transparent
+            );
+
+        display:flex;
+        align-items:flex-end;
+        justify-content:flex-start;
+
+        padding:16px;
+    }
+
+    .video-badge{
+
+        padding:8px 12px;
+
+        border-radius:999px;
+
+        background:rgba(0,0,0,0.45);
+
+        backdrop-filter:blur(12px);
+
+        font-size:12px;
+        font-weight:600;
+
+        border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .card-body {
+        padding: 18px;
+    }
+
+    .video-title {
+
+        font-weight: 700;
+
+        font-size: 16px;
+
+        color: white;
+
+        line-height:1.5;
+    }
+
+    .video-desc {
+
+        font-size: 13px;
+
+        color: var(--muted);
+
+        height: 42px;
+
+        overflow: hidden;
+
+        margin-top: 8px;
+
+        line-height:1.6;
+    }
+
+    .video-meta {
+
+        font-size: 12px;
+
+        color: #cbd5e1;
+
+        margin-top: 14px;
+
+        line-height: 1.8;
+
+        padding-top:12px;
+
+        border-top:1px solid rgba(255,255,255,0.06);
+    }
+
+    /* EMPTY */
+
+    .empty-box {
+
+        text-align: center;
+
+        padding: 70px 30px;
+
+        color: var(--muted);
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.06),
+                rgba(255,255,255,0.03)
+            );
+
+        border-radius: 30px;
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        backdrop-filter:blur(20px);
+
+        font-size:15px;
+    }
+
+    /* RESPONSIVE */
+
+    @@media(max-width:768px){
+
+        .profile-name{
+            font-size:28px;
+        }
+
+        .profile-box{
+            padding:26px 20px;
+            border-radius:28px;
+        }
+
+        .video-img{
+            height:190px;
+        }
+
+    }
+
+</style>
+
+<div class="container mt-4">
+
+    <!-- PROFILE -->
+    <div class="profile-box">
+
+        <div class="profile-top">
+
+            <div class="profile-avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+
+            <div>
+
+                <div class="profile-name">
+                    @Model.Item1.KullaniciAdi
+                </div>
+
+                <div class="user-email">
+                    @Model.Item1.Email
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="user-stats">
+
+            <div class="stat-box">
+                📺 Abone Sayısı:
+                <b>@ViewBag.AboneSayisi</b>
+            </div>
+
+        </div>
+
+        @if (Context.Session.GetString("UserEmail") != null &&
+        Context.Session.GetString("UserEmail") != Model.Item1.Email)
+        {
+            <div class="profile-actions">
+
+                <form asp-controller="Home"
+                      asp-action="AbonelikToggle"
+                      asp-route-id="@Model.Item1.Id"
+                      method="post">
+
+                    @if (ViewBag.AbonelikVar == true)
+                    {
+                        <button class="btn-sub">
+                            🔔 Abonelikten Çık
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn-sub">
+                            ✨ Abone Ol
+                        </button>
+                    }
+
+                </form>
+
+            </div>
+        }
+
+    </div>
+
+    <!-- VIDEOS -->
+    <div class="section-title">
+        🎬 Videolar
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-bar">
+        <a asp-action="Kullanici"
+           asp-route-id="@Model.Item1.Id"
+           asp-route-filter="newest"
+           class="filter-btn @(ViewBag.Filter == "newest" ? "active" : "")">
+
+            📅 En Güncel
+
+        </a>
+
+        <a asp-action="Kullanici"
+           asp-route-id="@Model.Item1.Id"
+           asp-route-filter="oldest"
+           class="filter-btn @(ViewBag.Filter == "oldest" ? "active" : "")">
+
+            ⏳ En Eski
+
+        </a>
+
+        <a asp-action="Kullanici"
+           asp-route-id="@Model.Item1.Id"
+           asp-route-filter="popular"
+           class="filter-btn @(ViewBag.Filter == "popular" ? "active" : "")">
+
+            🔥 En Çok İzlenen
+
+        </a>
+
+    </div>
+
+    @if (!Model.Item2.Any())
+    {
+        <div class="empty-box">
+            Bu kullanıcının henüz videosu yok.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var video in Model.Item2)
+            {
+                <div class="col-xl-4 col-lg-4 col-md-6">
+
+                    <div class="video-card">
+
+                        <div class="video-thumb-wrapper">
+
+                            <video class="video-img" muted>
+                                <source src="@video.VideoUrl" type="video/mp4" />
+                            </video>
+
+                            <div class="video-overlay">
+
+                                <div class="video-badge">
+                                    👁 @video.IzlenmeSayisi
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="video-title">
+                                @video.Baslik
+                            </div>
+
+                            <div class="video-desc">
+                                @video.Aciklama
+                            </div>
+
+                            <div class="video-meta">
+
+                                📅 @video.YuklenmeTarihi.ToString("dd MMM yyyy")
+                                <br />
+
+                                👍 @video.LikeSayisi beğeni
+
+                            </div>
+
+                            <div class="mt-3 d-flex gap-2 flex-wrap">
+
+                                <a asp-controller="Home"
+                                   asp-action="Izle"
+                                   asp-route-id="@video.Id"
+                                   class="btn-watch">
+
+                                    ▶ İzle
+
+                                </a>
+
+                                <form asp-controller="Home"
+                                      asp-action="DahaSonraEkle"
+                                      asp-route-id="@video.Id"
+                                      method="post">
+
+                                    <button class="btn-watch">
+                                        ⏳ Listeye Ekle
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

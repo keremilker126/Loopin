@@ -1,0 +1,703 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Loopin</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <!-- FAVICON -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+    <defs>
+    <linearGradient id='g' x1='0' x2='1'>
+    <stop offset='0%' stop-color='%237c5cff'/>
+    <stop offset='100%' stop-color='%23b14dff'/>
+    </linearGradient>
+    </defs>
+    <rect width='100' height='100' rx='24' fill='url(%23g)'/>
+    <polygon points='38,28 76,50 38,72' fill='white'/>
+    </svg>">
+
+    <style>
+
+        :root {
+            --bg: #070710;
+            --bg2: #0f1020;
+            --card: rgba(255,255,255,0.06);
+            --card-border: rgba(255,255,255,0.08);
+            --purple: #7c5cff;
+            --purple2: #b14dff;
+            --text: #ffffff;
+            --muted: #b7b7d1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(124,92,255,0.22), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(177,77,255,0.18), transparent 30%),
+                linear-gradient(160deg, #05050c, #0d0e1c 50%, #090912);
+            color: var(--text);
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 285px;
+            min-width: 285px;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            padding: 24px 18px;
+            backdrop-filter: blur(25px);
+            background: rgba(10, 10, 20, 0.72);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            transition: 0.35s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar.hide {
+            margin-left: -285px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .brand-logo {
+            width: 55px;
+            height: 55px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--purple), var(--purple2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 10px 35px rgba(124,92,255,0.45);
+        }
+
+        .brand-text h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-text span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .toggle-btn {
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(124,92,255,0.18);
+            border-color: rgba(124,92,255,0.35);
+        }
+
+        .menu-title {
+            font-size: 12px;
+            color: #8d8dad;
+            text-transform: uppercase;
+            margin: 24px 0 12px;
+            padding-left: 10px;
+            letter-spacing: 1px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            color: white;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.25s ease;
+            border: 1px solid transparent;
+        }
+
+        .sidebar a i {
+            width: 22px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .sidebar a:hover {
+            transform: translateX(6px);
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(124,92,255,0.2);
+        }
+
+        .sidebar a.active {
+            background: linear-gradient(135deg,
+                rgba(124,92,255,0.30),
+                rgba(177,77,255,0.18));
+            border: 1px solid rgba(124,92,255,0.4);
+            box-shadow: 0 12px 30px rgba(124,92,255,0.18);
+        }
+
+        .sidebar a.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 10px;
+            bottom: 10px;
+            width: 4px;
+            border-radius: 50px;
+            background: linear-gradient(var(--purple), var(--purple2));
+        }
+
+        /* CONTENT */
+
+        .content {
+            flex: 1;
+            padding: 24px;
+            min-width: 0;
+        }
+
+        /* FLOAT BUTTON */
+
+        .menu-toggle-global {
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--purple), var(--purple2));
+            color: white;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 12px 30px rgba(124,92,255,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar.hide ~ .content .menu-toggle-global {
+            display: flex;
+        }
+
+        /* NAVBAR */
+
+        .navbar-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 22px;
+            border-radius: 28px;
+            backdrop-filter: blur(30px);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow:
+                0 15px 40px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.04);
+            position: sticky;
+            top: 16px;
+            z-index: 50;
+        }
+
+        /* ULTRA SEARCH */
+
+        #loopinUltraSearchForm {
+            flex: 1;
+            max-width: 525px;
+        }
+
+        #loopinUltraSearchWrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 17px;
+            overflow: hidden;
+            transition: 0.3s ease;
+            box-shadow: inset 0 0 0 rgba(124,92,255,0);
+        }
+
+        #loopinUltraSearchWrapper:hover {
+            border-color: rgba(124,92,255,0.35);
+        }
+
+        #loopinUltraSearchWrapper:focus-within {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(124,92,255,0.6);
+            box-shadow:
+                0 0 0 4px rgba(124,92,255,0.15),
+                0 0 30px rgba(124,92,255,0.25);
+        }
+
+        #loopinUltraSearchIcon {
+            padding-left: 15px;
+            font-size: 14px;
+            color: #bdbde2;
+        }
+
+        #loopinUltraSearchInput {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent !important;
+            color: white !important;
+            padding: 13px 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        #loopinUltraSearchInput::placeholder {
+            color: #9f9fc2;
+        }
+
+        #loopinUltraSearchButton {
+            border: none;
+            height: 41px;
+            min-width: 44px;
+            border-radius: 14px;
+            margin-right: 5px;
+            background: linear-gradient(135deg, var(--purple), var(--purple2));
+            color: white;
+            transition: 0.25s ease;
+            box-shadow: 0 8px 24px rgba(124,92,255,0.35);
+        }
+
+        #loopinUltraSearchButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 28px rgba(124,92,255,0.55);
+        }
+
+        /* ACTION BUTTONS */
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            transition: 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-btn::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(124,92,255,0.25),
+                rgba(177,77,255,0.10)
+            );
+            opacity: 0;
+            transition: 0.25s;
+        }
+
+        .icon-btn:hover::before {
+            opacity: 1;
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-3px) scale(1.04);
+            border-color: rgba(124,92,255,0.3);
+            box-shadow: 0 12px 30px rgba(124,92,255,0.25);
+        }
+
+        button[data-loopin-loading="true"],
+        input[data-loopin-loading="true"] {
+            opacity: 0.72;
+            cursor: wait !important;
+            pointer-events: none;
+        }
+
+        .loopin-submit-loading {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .loopin-submit-spinner {
+            width: 1em;
+            height: 1em;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #ffffff;
+            border-radius: 999px;
+            animation: loopinSubmitSpin 0.75s linear infinite;
+        }
+
+        @@keyframes loopinSubmitSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .icon-btn i {
+            position: relative;
+            z-index: 2;
+            font-size: 17px;
+        }
+
+        /* MAIN */
+
+        main {
+            margin-top: 28px;
+            animation: fadeIn 0.45s ease;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* FOOTER */
+
+        footer {
+            margin-top: 40px;
+            padding: 25px;
+            text-align: center;
+            color: #9d9dba;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* SCROLLBAR */
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--purple), var(--purple2));
+            border-radius: 50px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* MOBILE */
+
+        @@media(max-width: 992px) {
+
+            .sidebar {
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+            }
+
+            .sidebar.hide {
+                margin-left: -100%;
+            }
+
+            .content {
+                width: 100%;
+                padding: 18px;
+            }
+
+            .navbar-custom {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            #loopinUltraSearchForm {
+                max-width: 100%;
+            }
+
+            .top-actions {
+                justify-content: center;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+
+        <div class="brand">
+            <div class="brand-logo">
+                <i class="fa-solid fa-play"></i>
+            </div>
+
+            <div class="brand-text">
+                <h2>Loopin</h2>
+                <span>Modern Video Platformu</span>
+            </div>
+        </div>
+
+        <div class="toggle-btn" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i> Menüyü Gizle
+        </div>
+
+        <div class="menu-title">Menü</div>
+
+        <a asp-action="Index" asp-controller="Home" class="active">
+            <i class="fa-solid fa-house"></i>
+            Ana Sayfa
+        </a>
+
+        <a asp-controller="Home" asp-action="Yukle">
+            <i class="fa-solid fa-video"></i>
+            Video Yükle
+        </a>
+
+        <a asp-controller="Home" asp-action="Trendler">
+            <i class="fa-solid fa-fire"></i>
+            Trendler
+        </a>
+
+        <a asp-controller="Home" asp-action="BenimVideolarim">
+            <i class="fa-solid fa-folder"></i>
+            Videolarım
+        </a>
+
+        <a asp-controller="Home" asp-action="BegenilenVideolar">
+            <i class="fa-solid fa-heart"></i>
+            Beğendiklerim
+        </a>
+
+        <a asp-controller="Home" asp-action="AbonelikVideolari">
+            <i class="fa-solid fa-tv"></i>
+            Abonelikler
+        </a>
+
+        <a asp-controller="Home" asp-action="DahaSonraIzle">
+            <i class="fa-solid fa-clock"></i>
+            Daha Sonra İzle
+        </a>
+
+        <a asp-controller="Home" asp-action="Gecmis">
+            <i class="fa-solid fa-history"></i>
+            İzleme Geçmişi
+        </a>
+
+        @if (Context.Session.GetString("IsAdmin") == "true")
+        {
+            <div class="menu-title">Yönetim</div>
+
+            <a asp-controller="Home" asp-action="AdminPanel">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+                Admin Panel
+            </a>
+        }
+
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- FLOAT MENU -->
+        <div class="menu-toggle-global" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+
+        <!-- NAVBAR -->
+        <nav class="navbar-custom">
+
+            <!-- ULTRA SEARCH -->
+            <form id="loopinUltraSearchForm"
+                  asp-controller="Home"
+                  asp-action="Arama"
+                  method="get">
+
+                <div id="loopinUltraSearchWrapper">
+
+                    <div id="loopinUltraSearchIcon">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+
+                    <input id="loopinUltraSearchInput"
+                           type="search"
+                           name="q"
+                           autocomplete="off"
+                           placeholder="Video, kanal veya kullanıcı ara..." />
+
+                    <button id="loopinUltraSearchButton" type="submit">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+
+                </div>
+
+            </form>
+
+            <!-- ACTIONS -->
+            <div class="top-actions">
+
+                @if (Context.Session.GetString("UserEmail") == null)
+                {
+                    <a class="icon-btn" href="/Home/Giris" title="Giriş">
+                        <i class="fa-solid fa-key"></i>
+                    </a>
+
+                    <a class="icon-btn" href="/Home/Kayit" title="Kayıt">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </a>
+                }
+                else
+                {
+                    <a class="icon-btn"
+                       asp-controller="Home"
+                       asp-action="Kullanici"
+                       asp-route-id="@Context.Session.GetInt32("UserId")"
+                       title="Profil">
+
+                        <i class="fa-solid fa-user"></i>
+                    </a>
+
+                    <a class="icon-btn"
+                       asp-controller="Home"
+                       asp-action="SifreDegistir"
+                       title="Şifre Değiştir">
+
+                        <i class="fa-solid fa-lock"></i>
+                    </a>
+
+                    <a class="icon-btn"
+                       href="/Home/Cikis"
+                       title="Çıkış">
+
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                }
+
+            </div>
+
+        </nav>
+
+        <!-- PAGE -->
+        <main>
+            @RenderBody()
+        </main>
+
+        <!-- FOOTER -->
+        <footer>
+            © 2026 Loopin — Yeni Nesil Video Platformu
+        </footer>
+
+    </div>
+
+    <!-- JS -->
+    <script>
+
+        const sidebarStorageKey = "loopinSidebarHidden";
+        const sidebar = document.getElementById("sidebar");
+
+        if (sessionStorage.getItem(sidebarStorageKey) === "true") {
+            sidebar.classList.add("hide");
+        }
+
+        function toggleSidebar() {
+            sidebar.classList.toggle("hide");
+            sessionStorage.setItem(sidebarStorageKey, sidebar.classList.contains("hide"));
+        }
+
+        document.addEventListener("submit", function (event) {
+            if (event.defaultPrevented) {
+                return;
+            }
+
+            const form = event.target;
+
+            if (!(form instanceof HTMLFormElement) || form.dataset.noSubmitLock === "true") {
+                return;
+            }
+
+            const submitButtons = form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"]');
+
+            submitButtons.forEach((button) => {
+                if (button.dataset.loopinLoading === "true") {
+                    return;
+                }
+
+                button.dataset.loopinOriginalHtml = button.tagName === "BUTTON"
+                    ? button.innerHTML
+                    : button.value;
+                button.dataset.loopinLoading = "true";
+                button.disabled = true;
+
+                if (button.tagName === "BUTTON") {
+                    button.innerHTML = '<span class="loopin-submit-loading"><span class="loopin-submit-spinner"></span><span>Yükleniyor...</span></span>';
+                } else {
+                    button.value = "Yükleniyor...";
+                }
+            });
+        }, false);
+
+    </script>
+
+</body>
+
+</html>

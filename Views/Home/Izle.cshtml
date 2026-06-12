@@ -1,0 +1,764 @@
+@model Loopin.Models.Video
+
+@{
+    ViewData["Title"] = Model.Baslik;
+}
+
+<style>
+
+    :root{
+        --purple:#7c5cff;
+        --purple2:#b14dff;
+        --bg:#070710;
+        --bg2:#101120;
+        --card:rgba(255,255,255,0.05);
+        --border:rgba(255,255,255,0.08);
+        --text:#ffffff;
+        --muted:#a6a6c7;
+    }
+
+    body{
+        background:
+            radial-gradient(circle at top left, rgba(124,92,255,0.20), transparent 30%),
+            radial-gradient(circle at bottom right, rgba(177,77,255,0.18), transparent 32%),
+            linear-gradient(160deg,#05050c,#0d0e1c 55%,#090912);
+        color:white;
+        overflow-x:hidden;
+    }
+
+    body::before{
+        content:"";
+        position:fixed;
+        inset:0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size:40px 40px;
+        pointer-events:none;
+        z-index:-1;
+    }
+
+    .container{
+        max-width:1600px;
+    }
+
+    .main-container {
+        display: flex;
+        gap: 24px;
+        margin-top: 20px;
+        align-items:flex-start;
+    }
+
+    .left-side {
+        flex: 3;
+        min-width:0;
+    }
+
+    .right-side {
+        flex: 1;
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+    }
+
+    /* VIDEO */
+
+    .video-box {
+        border-radius: 28px;
+        overflow: hidden;
+        position:relative;
+
+        background:black;
+
+        border:1px solid rgba(255,255,255,0.06);
+
+        box-shadow:
+            0 30px 70px rgba(0,0,0,0.45),
+            0 0 40px rgba(124,92,255,0.08);
+    }
+
+    .video-box::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        border-radius:inherit;
+        pointer-events:none;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(124,92,255,0.12),
+                transparent 30%,
+                rgba(177,77,255,0.10)
+            );
+    }
+
+    video{
+        display:block;
+        width:100%;
+        max-height:78vh;
+        background:black;
+    }
+
+    /* INFO CARD */
+
+    .video-info {
+        margin-top: 22px;
+        padding: 28px;
+        border-radius: 30px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.06),
+                rgba(255,255,255,0.03)
+            );
+
+        backdrop-filter: blur(25px);
+
+        border:1px solid rgba(255,255,255,0.08);
+
+        box-shadow:
+            0 20px 60px rgba(0,0,0,0.35),
+            inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .video-title {
+        font-size: 34px;
+        font-weight: 800;
+        line-height:1.2;
+        letter-spacing:-1px;
+        color:white;
+    }
+
+    .video-meta {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 14px;
+
+        display:flex;
+        flex-wrap:wrap;
+        gap:16px;
+    }
+
+    .meta-badge{
+        padding:10px 14px;
+        border-radius:999px;
+
+        background:rgba(255,255,255,0.05);
+
+        border:1px solid rgba(255,255,255,0.06);
+
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+
+    /* USER AREA */
+
+    .badge-user {
+        margin-top: 22px;
+        display: flex;
+        align-items: center;
+        justify-content:space-between;
+        gap: 16px;
+        flex-wrap:wrap;
+        padding:18px;
+
+        border-radius:22px;
+
+        background:rgba(255,255,255,0.04);
+
+        border:1px solid rgba(255,255,255,0.06);
+    }
+
+    .user-left{
+        display:flex;
+        align-items:center;
+        gap:14px;
+    }
+
+    .user-avatar{
+        width:56px;
+        height:56px;
+        border-radius:18px;
+
+        background:linear-gradient(135deg,var(--purple),var(--purple2));
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        font-size:22px;
+
+        box-shadow:
+            0 10px 30px rgba(124,92,255,0.35);
+    }
+
+    .user-name{
+        color:white;
+        font-weight:700;
+        text-decoration:none;
+        font-size:15px;
+    }
+
+    .user-name:hover{
+        color:#d8cbff;
+    }
+
+    .user-sub{
+        font-size:12px;
+        color:var(--muted);
+        margin-top:2px;
+    }
+
+    /* DESCRIPTION */
+
+    .video-desc {
+        font-size: 14px;
+        color: #d3d3e7;
+        margin-top: 22px;
+        line-height:1.8;
+
+        padding:20px;
+        border-radius:22px;
+
+        background:rgba(255,255,255,0.03);
+
+        border:1px solid rgba(255,255,255,0.05);
+    }
+
+    /* BUTTONS */
+
+    .btn-like,
+    .btn-modern,
+    .btn-delete {
+
+        border:none !important;
+
+        border-radius:999px;
+        padding:12px 18px;
+        font-size:13px;
+        font-weight:700;
+        transition:.25s ease;
+
+        color:white !important;
+    }
+
+    .btn-like{
+        background:
+            linear-gradient(
+                135deg,
+                rgba(124,92,255,0.95),
+                rgba(177,77,255,0.92)
+            );
+
+        box-shadow:
+            0 12px 30px rgba(124,92,255,0.30);
+    }
+
+    .btn-modern{
+        background:
+            linear-gradient(
+                135deg,
+                #6d5cff,
+                #8b5dff
+            );
+
+        box-shadow:
+            0 12px 30px rgba(124,92,255,0.28);
+    }
+
+    .btn-delete{
+        background:
+            linear-gradient(
+                135deg,
+                #ff4d6d,
+                #d90429
+            );
+
+        padding:8px 14px;
+        font-size:12px;
+
+        box-shadow:
+            0 8px 20px rgba(255,77,109,0.25);
+    }
+
+    .btn-like:hover,
+    .btn-modern:hover,
+    .btn-delete:hover{
+        transform:translateY(-3px) scale(1.03);
+    }
+
+    /* COMMENTS */
+
+    .comments-wrapper{
+        margin-top:38px;
+    }
+
+    .section-title{
+        font-size:22px;
+        font-weight:800;
+        margin-bottom:20px;
+    }
+
+    textarea.form-control {
+        border-radius: 22px;
+        background: rgba(255,255,255,0.04);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        padding:18px;
+        min-height:120px;
+        resize:none;
+    }
+
+    textarea.form-control::placeholder{
+        color:#9f9fc0;
+    }
+
+    textarea.form-control:focus {
+        background: rgba(255,255,255,0.06);
+        color: white;
+
+        border-color: rgba(124,92,255,0.5);
+
+        box-shadow:
+            0 0 0 4px rgba(124,92,255,0.12),
+            0 0 30px rgba(124,92,255,0.18);
+    }
+
+    .yorum-box {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.05),
+                rgba(255,255,255,0.03)
+            );
+
+        padding: 18px;
+        border-radius: 24px;
+        margin-bottom: 14px;
+
+        border: 1px solid rgba(255,255,255,0.06);
+
+        transition: .25s ease;
+
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.18);
+    }
+
+    .yorum-box:hover {
+        transform: translateY(-3px);
+        border-color: rgba(124,92,255,0.22);
+        box-shadow:
+            0 18px 40px rgba(124,92,255,0.12);
+    }
+
+    .comment-user{
+        font-weight:700;
+        font-size:14px;
+    }
+
+    .comment-date {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .comment-text{
+        color:#d9d9ec;
+        margin-top:14px;
+        line-height:1.7;
+    }
+
+    /* SUGGESTIONS */
+
+    .suggest-box {
+        padding: 22px;
+        border-radius: 28px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.06),
+                rgba(255,255,255,0.03)
+            );
+
+        backdrop-filter: blur(24px);
+
+        border:1px solid rgba(255,255,255,0.08);
+
+        box-shadow:
+            0 20px 50px rgba(0,0,0,0.28);
+    }
+
+    .suggest-title-main{
+        font-size:18px;
+        font-weight:800;
+        margin-bottom:18px;
+    }
+
+    .suggest-item {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 14px;
+        padding: 12px;
+        border-radius: 20px;
+
+        transition: .28s ease;
+
+        align-items: center;
+        cursor: pointer;
+
+        border:1px solid transparent;
+    }
+
+    .suggest-item:hover {
+        background: rgba(255,255,255,0.04);
+        transform: translateX(6px);
+        border-color: rgba(124,92,255,0.16);
+    }
+
+    .suggest-thumb {
+        width: 120px;
+        height: 78px;
+        object-fit: cover;
+        border-radius: 14px;
+
+        border:1px solid rgba(255,255,255,0.06);
+    }
+
+    .suggest-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+        line-height:1.5;
+    }
+
+    .suggest-meta {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top:6px;
+        line-height:1.6;
+    }
+
+    /* RESPONSIVE */
+
+    @@media (max-width: 992px) {
+
+        .main-container {
+            flex-direction: column;
+        }
+
+        .right-side {
+            position: static;
+            width:100%;
+        }
+
+        .video-title{
+            font-size:26px;
+        }
+
+    }
+
+</style>
+
+<div class="container">
+
+    <div class="main-container">
+
+        <!-- LEFT -->
+        <div class="left-side">
+
+            <!-- VIDEO -->
+            <div class="video-box">
+                <video controls>
+                    <source src="@Model.VideoUrl" type="video/mp4" />
+                </video>
+            </div>
+
+            <!-- INFO -->
+            <div class="video-info">
+
+                <div class="video-title">
+                    @Model.Baslik
+                </div>
+
+                <div class="video-meta">
+
+                    <div class="meta-badge">
+                        👁 @Model.IzlenmeSayisi izlenme
+                    </div>
+
+                    <div class="meta-badge">
+                        👍 @Model.LikeSayisi beğeni
+                    </div>
+
+                    <div class="meta-badge">
+                        📅 @Model.YuklenmeTarihi.ToString("dd MMM yyyy HH:mm")
+                    </div>
+
+                </div>
+
+                <!-- USER -->
+                <div class="badge-user">
+
+                    <div class="user-left">
+
+                        <div class="user-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+
+                        <div>
+
+                            <a asp-controller="Home"
+                               asp-action="Kullanici"
+                               asp-route-id="@Model.KullaniciId"
+                               class="user-name">
+
+                                @Model.Kullanici?.KullaniciAdi
+
+                            </a>
+
+                            <div class="user-sub">
+                                İçerik üreticisi
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    @if (Context.Session.GetString("UserEmail") != null
+                    && Context.Session.GetString("UserEmail") != Model.Kullanici?.Email)
+                    {
+                        <form asp-controller="Home"
+                              asp-action="AbonelikToggle"
+                              asp-route-id="@Model.KullaniciId"
+                              method="post"
+                              class="d-inline">
+
+                            @if (ViewBag.AbonelikVar == true)
+                            {
+                                <button class="btn-like">
+                                    🔔 Abonelikten Çık
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-like">
+                                    ✨ Abone Ol
+                                </button>
+                            }
+
+                        </form>
+                    }
+
+                </div>
+
+                <!-- DESCRIPTION -->
+                <div class="video-desc">
+                    @Model.Aciklama
+                </div>
+
+                <!-- LIKE -->
+                <form asp-controller="Home"
+                      asp-action="Begen"
+                      asp-route-id="@Model.Id"
+                      method="post"
+                      class="mt-4">
+
+                    @if (ViewBag.Begenildi == true)
+                    {
+                        <button class="btn-like">
+                            👎 Beğeniyi Kaldır (@Model.LikeSayisi)
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn-like">
+                            👍 Beğen (@Model.LikeSayisi)
+                        </button>
+                    }
+
+                </form>
+
+                <!-- COMMENTS -->
+                <div class="comments-wrapper">
+
+                    <div class="section-title">
+                        💬 Yorumlar
+                    </div>
+
+                    <form asp-controller="Home"
+                          asp-action="YorumEkle"
+                          asp-route-id="@Model.Id"
+                          method="post">
+
+                        <textarea name="Icerik"
+                                  class="form-control mb-3"
+                                  placeholder="Bu video hakkında düşüncelerini paylaş..."
+                                  required></textarea>
+
+                        <button class="btn-modern">
+                            🚀 Yorumu Gönder
+                        </button>
+
+                    </form>
+
+                    <div class="mt-4">
+
+                        @if (Model.VideoYorumlar != null && Model.VideoYorumlar.Any())
+                        {
+                            foreach (var yorum in Model.VideoYorumlar)
+                            {
+                                <div class="yorum-box">
+
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+
+                                        <div>
+
+                                            <div class="comment-user">
+                                                @yorum.Kullanici?.KullaniciAdi
+                                            </div>
+
+                                            <div class="comment-date">
+                                                @yorum.Tarih.ToString("dd MMM yyyy HH:mm")
+                                            </div>
+
+                                        </div>
+
+                                        @if (Context.Session.GetString("UserEmail") == yorum.Kullanici?.Email)
+                                        {
+                                            <form asp-controller="Home"
+                                                  asp-action="YorumSil"
+                                                  asp-route-id="@yorum.Id"
+                                                  method="post"
+                                                  onsubmit="return yorumSilOnay(event, this)">
+
+                                                <button type="submit" class="btn-delete">
+                                                    🗑 Sil
+                                                </button>
+
+                                            </form>
+                                        }
+
+                                    </div>
+
+                                    <div class="comment-text">
+                                        @yorum.Icerik
+                                    </div>
+
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">
+                                Henüz yorum yok.
+                            </p>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right-side">
+
+            <div class="suggest-box">
+
+                <div class="suggest-title-main">
+                    🔥 Önerilen Videolar
+                </div>
+
+                @if (ViewBag.DigerVideolar != null && ((List<Loopin.Models.Video>)ViewBag.DigerVideolar).Any())
+                {
+                    foreach (var v in (List<Loopin.Models.Video>)ViewBag.DigerVideolar)
+                    {
+                        <a asp-controller="Home"
+                           asp-action="Izle"
+                           asp-route-id="@v.Id"
+                           style="text-decoration:none; color:inherit;">
+
+                            <div class="suggest-item">
+
+                                <img class="suggest-thumb"
+                                     src="@v.KapakResmiUrl" />
+
+                                <div>
+
+                                    <div class="suggest-title">
+                                        @v.Baslik
+                                    </div>
+
+                                    <div class="suggest-meta">
+                                        👁 @v.IzlenmeSayisi izlenme <br />
+                                        👍 @v.LikeSayisi beğeni
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </a>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">
+                        Öneri bulunamadı
+                    </p>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+    function yorumSilOnay(event, form) {
+
+        event.preventDefault();
+
+        Swal.fire({
+
+            title: 'Yorumu silmek istiyor musun?',
+            text: 'Bu işlem geri alınamaz.',
+            icon: 'warning',
+
+            showCancelButton: true,
+
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+
+            confirmButtonText: 'Evet, sil',
+            cancelButtonText: 'Vazgeç',
+
+            background: '#131320',
+            color: 'white',
+
+            backdrop: `
+                rgba(0,0,0,0.7)
+            `
+
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+                form.submit();
+            }
+
+        });
+
+        return false;
+    }
+
+</script>

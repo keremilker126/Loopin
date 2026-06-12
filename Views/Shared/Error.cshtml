@@ -1,0 +1,75 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Bir Sorun Oluştu";
+}
+
+<style>
+    .error-page {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 18px;
+    }
+
+    .error-box {
+        width: 100%;
+        max-width: 560px;
+        padding: 32px;
+        border-radius: 28px;
+        text-align: center;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+        color: white;
+    }
+
+    .error-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg,#7c5cff,#b14dff);
+        box-shadow: 0 16px 35px rgba(124,92,255,0.35);
+        font-size: 28px;
+    }
+
+    .error-box h1 {
+        font-size: 30px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .error-box p {
+        color: #b7b7d1;
+        line-height: 1.7;
+        margin-bottom: 18px;
+    }
+
+    .error-request {
+        color: #8d8dad;
+        font-size: 12px;
+        word-break: break-word;
+    }
+</style>
+
+<div class="error-page">
+    <div class="error-box">
+        <div class="error-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+
+        <h1>Bir sorun oluştu</h1>
+        <p>İşlem güvenli şekilde durduruldu. Lütfen sayfayı yenileyip tekrar deneyin.</p>
+
+        @if (Model?.ShowRequestId == true)
+        {
+            <div class="error-request">
+                Hata kodu: @Model.RequestId
+            </div>
+        }
+    </div>
+</div>

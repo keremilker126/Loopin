@@ -1,0 +1,1635 @@
+@model Loopin.Models.AdminPanelViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+@functions {
+    private const double PlotLeft = 48d;
+    private const double PlotTop = 20d;
+    private const double PlotWidth = 840d;
+    private const double PlotHeight = 176d;
+    private const double PlotBaseline = PlotTop + PlotHeight;
+
+    private static string SvgNumber(double value) =>
+        value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static double GraphX(int index, int count) =>
+        count <= 1 ? PlotLeft + (PlotWidth / 2) : PlotLeft + (PlotWidth * index / (count - 1));
+
+    private static double GraphY(int value, int max) =>
+        PlotBaseline - (PlotHeight * value / Math.Max(1, max));
+
+    private static string GraphPoints(
+        IReadOnlyList<Loopin.Models.ChannelDailyStatsViewModel> values,
+        Func<Loopin.Models.ChannelDailyStatsViewModel, int> selector)
+    {
+        var max = Math.Max(1, values.Select(selector).DefaultIfEmpty(0).Max());
+
+        return string.Join(" ", values.Select((item, index) =>
+        {
+            var x = GraphX(index, values.Count);
+            var y = GraphY(selector(item), max);
+            return $"{SvgNumber(x)},{SvgNumber(y)}";
+        }));
+    }
+
+    private static string AreaPoints(
+        IReadOnlyList<Loopin.Models.ChannelDailyStatsViewModel> values,
+        Func<Loopin.Models.ChannelDailyStatsViewModel, int> selector)
+    {
+        if (values.Count == 0)
+        {
+            return "";
+        }
+
+        var firstX = GraphX(0, values.Count);
+        var lastX = GraphX(values.Count - 1, values.Count);
+        return $"{SvgNumber(firstX)},{SvgNumber(PlotBaseline)} {GraphPoints(values, selector)} {SvgNumber(lastX)},{SvgNumber(PlotBaseline)}";
+    }
+}
+
+<style>
+
+    :root{
+        --bg:#050816;
+        --card:rgba(15,23,42,.88);
+        --card2:rgba(17,24,39,.92);
+        --border:rgba(255,255,255,.08);
+        --text:#f8fafc;
+        --muted:#94a3b8;
+
+        --primary:#8b5cf6;
+        --primary2:#6366f1;
+
+        --danger:#ef4444;
+        --danger2:#dc2626;
+
+        --success:#22c55e;
+    }
+
+    body{
+        background:
+            radial-gradient(circle at top left, rgba(99,102,241,.18), transparent 30%),
+            radial-gradient(circle at top right, rgba(139,92,246,.16), transparent 25%),
+            linear-gradient(180deg,#050816,#0b1020 60%,#050816);
+        color:var(--text);
+    }
+
+    .admin-page{
+        animation:fadeIn .45s ease;
+    }
+
+    @@keyframes fadeIn{
+        from{
+            opacity:0;
+            transform:translateY(10px);
+        }
+        to{
+            opacity:1;
+            transform:translateY(0);
+        }
+    }
+
+    /* HEADER */
+
+    .admin-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:20px;
+        flex-wrap:wrap;
+        margin-bottom:30px;
+    }
+
+    .page-title{
+        font-size:clamp(2rem,4vw,3rem);
+        font-weight:900;
+        line-height:1;
+        margin-bottom:10px;
+        letter-spacing:-.04em;
+        background:linear-gradient(90deg,#818cf8,#a855f7,#ec4899);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+    }
+
+    .page-sub{
+        color:var(--muted);
+        max-width:650px;
+        font-size:14px;
+    }
+
+    .stats-wrap{
+        display:flex;
+        gap:14px;
+        flex-wrap:wrap;
+    }
+
+    .stat-box{
+        min-width:140px;
+        padding:16px 20px;
+        border-radius:22px;
+        background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.08);
+        backdrop-filter:blur(20px);
+        text-align:center;
+        box-shadow:0 15px 35px rgba(0,0,0,.35);
+    }
+
+    .stat-box strong{
+        display:block;
+        font-size:28px;
+        font-weight:900;
+    }
+
+    .stat-box span{
+        color:var(--muted);
+        font-size:12px;
+    }
+
+    /* SEARCH */
+
+    .search-box{
+        position:sticky;
+        top:12px;
+        z-index:100;
+        margin-bottom:28px;
+        padding:16px;
+        border-radius:24px;
+        background:rgba(15,23,42,.72);
+        border:1px solid rgba(255,255,255,.08);
+        backdrop-filter:blur(20px);
+        box-shadow:0 20px 45px rgba(0,0,0,.35);
+    }
+
+    .search-form{
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+
+    .search-icon{
+        width:48px;
+        height:48px;
+        border-radius:16px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.06);
+        font-size:18px;
+    }
+
+    .search-input2{
+        flex:1;
+        height:50px;
+        border:none;
+        outline:none;
+        color:white;
+        border-radius:16px;
+        padding:0 18px;
+        background:rgba(255,255,255,.04);
+        border:1px solid rgba(255,255,255,.06);
+        transition:.25s ease;
+    }
+
+    .search-input2:focus{
+        border-color:rgba(139,92,246,.45);
+        box-shadow:0 0 0 4px rgba(139,92,246,.15);
+    }
+
+    .search-btn2{
+        height:50px;
+        min-width:54px;
+        border:none;
+        color:white;
+        font-weight:700;
+        border-radius:16px;
+        background:linear-gradient(135deg,var(--primary),var(--primary2));
+        transition:.25s ease;
+        box-shadow:0 15px 35px rgba(99,102,241,.3);
+    }
+
+    .search-btn2:hover{
+        transform:translateY(-2px) scale(1.03);
+        box-shadow:0 20px 45px rgba(99,102,241,.45);
+    }
+
+    /* SECTION */
+
+    .section-box{
+        position:relative;
+        overflow:hidden;
+        margin-bottom:28px;
+        border-radius:32px;
+        padding:24px;
+        background:linear-gradient(145deg,var(--card),var(--card2));
+        border:1px solid var(--border);
+        backdrop-filter:blur(22px);
+        box-shadow:0 30px 70px rgba(0,0,0,.4);
+    }
+
+    .section-box::before{
+        content:"";
+        position:absolute;
+        width:300px;
+        height:300px;
+        background:radial-gradient(circle, rgba(139,92,246,.12), transparent 70%);
+        top:-140px;
+        right:-140px;
+        pointer-events:none;
+    }
+
+    .section-title{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin-bottom:20px;
+        cursor:pointer;
+        user-select:none;
+    }
+
+    .section-left{
+        display:flex;
+        align-items:center;
+        gap:14px;
+    }
+
+    .section-icon{
+        width:54px;
+        height:54px;
+        border-radius:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:24px;
+        background:rgba(139,92,246,.14);
+        border:1px solid rgba(139,92,246,.22);
+        box-shadow:0 0 30px rgba(139,92,246,.15);
+    }
+
+    .section-title h3{
+        margin:0;
+        font-size:22px;
+        font-weight:800;
+        color:white;
+    }
+
+    .section-title p{
+        margin:0;
+        color:var(--muted);
+        font-size:13px;
+    }
+
+    .toggle-icon{
+        width:42px;
+        height:42px;
+        border-radius:14px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.08);
+        transition:.3s ease;
+    }
+
+    .section-box.active .toggle-icon{
+        transform:rotate(180deg);
+    }
+
+    .section-content{
+        overflow:hidden;
+        max-height:5000px;
+        opacity:1;
+        transition:all .4s ease;
+    }
+
+    .section-content.closed{
+        max-height:0;
+        opacity:0;
+        margin-top:0;
+    }
+
+    /* GRID */
+
+    .grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+        gap:18px;
+    }
+
+    /* CARD */
+
+    .card-modern{
+        position:relative;
+        overflow:hidden;
+        border-radius:26px;
+        padding:20px;
+        background:rgba(255,255,255,.03);
+        border:1px solid rgba(255,255,255,.06);
+        transition:.35s ease;
+        box-shadow:0 15px 35px rgba(0,0,0,.25);
+    }
+
+    .card-modern:hover{
+        transform:translateY(-8px);
+        border-color:rgba(139,92,246,.35);
+        box-shadow:
+            0 30px 60px rgba(0,0,0,.42),
+            0 0 40px rgba(139,92,246,.12);
+    }
+
+    .card-top{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        margin-bottom:16px;
+    }
+
+    .avatar{
+        width:56px;
+        height:56px;
+        border-radius:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:22px;
+        font-weight:800;
+        background:linear-gradient(135deg,#6366f1,#8b5cf6);
+        box-shadow:0 15px 30px rgba(99,102,241,.3);
+    }
+
+    .title{
+        font-size:16px;
+        font-weight:800;
+        color:white;
+        line-height:1.4;
+        word-break:break-word;
+    }
+
+    .meta{
+        font-size:13px;
+        color:var(--muted);
+        margin-top:4px;
+        word-break:break-word;
+    }
+
+    .meta-row{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:16px;
+    }
+
+    .chip{
+        padding:8px 12px;
+        border-radius:999px;
+        font-size:11px;
+        font-weight:700;
+        background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.06);
+        color:#dbe4ff;
+    }
+
+    /* BUTTONS */
+
+    .action-group{
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        margin-top:18px;
+    }
+
+    .icon-btn{
+        width:100%;
+        border:none;
+        border-radius:16px;
+        padding:12px 14px;
+        font-size:13px;
+        font-weight:700;
+        transition:.25s ease;
+    }
+
+    .delete-btn{
+        color:#fecaca;
+        background:rgba(239,68,68,.12);
+        border:1px solid rgba(239,68,68,.22);
+    }
+
+    .delete-btn:hover{
+        color:white;
+        transform:translateY(-2px);
+        background:linear-gradient(135deg,var(--danger),var(--danger2));
+        border-color:transparent;
+        box-shadow:0 18px 35px rgba(239,68,68,.35);
+    }
+
+    .empty-state{
+        text-align:center;
+        padding:40px 20px;
+        color:var(--muted);
+    }
+
+    /* CHANNEL STATS */
+
+    .channel-user-name{
+        display:block;
+        font-weight:800;
+        font-size:14px;
+        word-break:break-word;
+    }
+
+    .channel-user-meta{
+        display:block;
+        color:var(--muted);
+        font-size:12px;
+        margin-top:4px;
+        word-break:break-word;
+    }
+
+    .channel-panel{
+        display:none;
+    }
+
+    .channel-panel.active{
+        display:block;
+    }
+
+    .chart-card{
+        padding:22px;
+        border-radius:24px;
+        background:rgba(255,255,255,.028);
+        border:1px solid rgba(255,255,255,.06);
+    }
+
+    .legend-dot{
+        width:10px;
+        height:10px;
+        border-radius:50%;
+        display:inline-block;
+        margin-right:6px;
+    }
+
+    .stats-filter{
+        display:flex;
+        gap:12px;
+        align-items:end;
+        flex-wrap:wrap;
+        padding:16px;
+        margin-bottom:18px;
+        border-radius:18px;
+        background:rgba(255,255,255,.035);
+        border:1px solid rgba(255,255,255,.06);
+    }
+
+    .analytics-titlebar{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:18px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+    }
+
+    .period-text{
+        color:var(--muted);
+        font-size:13px;
+    }
+
+    .quick-range{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        flex-wrap:wrap;
+    }
+
+    .quick-range a{
+        padding:9px 13px;
+        border-radius:11px;
+        color:#cbd5e1;
+        font-size:12px;
+        font-weight:700;
+        text-decoration:none;
+        background:rgba(255,255,255,.04);
+        border:1px solid rgba(255,255,255,.07);
+    }
+
+    .quick-range a:hover{
+        color:white;
+        border-color:rgba(139,92,246,.4);
+        background:rgba(139,92,246,.16);
+    }
+
+    .overview-grid{
+        display:grid;
+        grid-template-columns:repeat(4,minmax(140px,1fr));
+        gap:12px;
+        margin-bottom:20px;
+    }
+
+    .overview-card{
+        padding:17px 18px;
+        border-radius:18px;
+        background:rgba(255,255,255,.035);
+        border:1px solid rgba(255,255,255,.06);
+    }
+
+    .overview-card span{
+        display:block;
+        color:var(--muted);
+        font-size:12px;
+        margin-bottom:8px;
+    }
+
+    .overview-card strong{
+        display:block;
+        color:white;
+        font-size:27px;
+        line-height:1;
+        font-weight:850;
+    }
+
+    .stats-filter label{
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+        color:var(--muted);
+        font-size:12px;
+        font-weight:700;
+    }
+
+    .stats-filter input{
+        height:44px;
+        color:white;
+        color-scheme:dark;
+        padding:0 12px;
+        border-radius:12px;
+        background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.08);
+    }
+
+    .stats-filter button{
+        height:44px;
+        padding:0 20px;
+        border:0;
+        border-radius:12px;
+        color:white;
+        font-weight:700;
+        background:linear-gradient(135deg,var(--primary),var(--primary2));
+    }
+
+    .filter-message{
+        width:100%;
+        color:#c4b5fd;
+        font-size:13px;
+    }
+
+    .channel-table-wrap{
+        overflow-x:auto;
+        margin-bottom:20px;
+    }
+
+    .channel-table{
+        width:100%;
+        border-collapse:separate;
+        border-spacing:0 8px;
+        min-width:640px;
+    }
+
+    .channel-table th{
+        color:var(--muted);
+        font-size:12px;
+        text-align:left;
+        padding:0 16px 8px;
+    }
+
+    .channel-table td{
+        padding:15px 16px;
+        background:rgba(255,255,255,.035);
+        border-top:1px solid rgba(255,255,255,.06);
+        border-bottom:1px solid rgba(255,255,255,.06);
+    }
+
+    .channel-table td:first-child{
+        border-left:1px solid rgba(255,255,255,.06);
+        border-radius:16px 0 0 16px;
+    }
+
+    .channel-table td:last-child{
+        border-right:1px solid rgba(255,255,255,.06);
+        border-radius:0 16px 16px 0;
+    }
+
+    .channel-row{
+        cursor:pointer;
+        transition:.2s ease;
+    }
+
+    .channel-row:hover td,
+    .channel-row.active td{
+        border-color:rgba(139,92,246,.35);
+        background:rgba(139,92,246,.13);
+    }
+
+    .channel-total{
+        color:#f8fafc;
+        font-size:18px;
+        font-weight:800;
+    }
+
+    .line-chart-grid{
+        display:grid;
+        gap:18px;
+    }
+
+    .line-chart-card{
+        padding:18px;
+        border-radius:18px;
+        background:rgba(4,8,22,.2);
+        border:1px solid rgba(255,255,255,.06);
+    }
+
+    .line-chart-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:8px;
+        margin-bottom:10px;
+        color:#e2e8f0;
+        font-weight:700;
+    }
+
+    .line-chart-label{
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+
+    .line-chart-value{
+        color:white;
+        font-size:20px;
+        font-weight:850;
+    }
+
+    .line-chart{
+        display:block;
+        width:100%;
+        height:auto;
+        min-height:185px;
+    }
+
+    .chart-grid-line{
+        stroke:rgba(148,163,184,.14);
+        stroke-width:1;
+    }
+
+    .chart-line{
+        fill:none !important;
+        stroke-width:3.2;
+        stroke-linecap:round;
+        stroke-linejoin:round;
+    }
+
+    .chart-area{
+        stroke:none;
+        pointer-events:none;
+    }
+
+    .chart-line.views{ stroke:#1681ff; }
+    .chart-point.views{ stroke:#1681ff; fill:#1681ff; }
+    .chart-line.likes{ stroke:#ec4899; }
+    .chart-point.likes{ stroke:#ec4899; fill:#ec4899; }
+    .chart-line.watch{ stroke:#22c55e; }
+    .chart-point.watch{ stroke:#22c55e; fill:#22c55e; }
+
+    .axis-label{
+        fill:#94a3b8;
+        font-size:11px;
+    }
+
+    /* EMAIL LIST */
+
+    .blocked-list{
+        display:flex;
+        flex-direction:column;
+        gap:14px;
+    }
+
+    .blocked-item{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:14px;
+        padding:16px;
+        border-radius:20px;
+        background:rgba(255,255,255,.04);
+        border:1px solid rgba(255,255,255,.06);
+        transition:.25s ease;
+        flex-wrap:wrap;
+    }
+
+    .blocked-item:hover{
+        transform:translateY(-2px);
+        border-color:rgba(139,92,246,.22);
+    }
+
+    .email-text{
+        font-size:14px;
+        color:#e2e8f0;
+        word-break:break-word;
+    }
+
+    /* MODAL */
+
+    .custom-modal{
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.72);
+        backdrop-filter:blur(10px);
+        display:none;
+        justify-content:center;
+        align-items:center;
+        z-index:9999;
+        padding:20px;
+    }
+
+    .custom-modal-content{
+        width:100%;
+        max-width:400px;
+        border-radius:32px;
+        padding:28px;
+        text-align:center;
+        background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(17,24,39,.92));
+        border:1px solid rgba(255,255,255,.08);
+        box-shadow:0 35px 80px rgba(0,0,0,.55);
+        animation:modalPop .25s ease;
+    }
+
+    @@keyframes modalPop{
+        from{
+            opacity:0;
+            transform:scale(.82);
+        }
+        to{
+            opacity:1;
+            transform:scale(1);
+        }
+    }
+
+    .modal-icon{
+        width:78px;
+        height:78px;
+        margin:0 auto 20px;
+        border-radius:26px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:34px;
+        background:rgba(239,68,68,.12);
+        border:1px solid rgba(239,68,68,.2);
+        box-shadow:0 0 40px rgba(239,68,68,.15);
+    }
+
+    .custom-modal h3{
+        font-size:28px;
+        font-weight:900;
+        margin-bottom:10px;
+        color:white;
+    }
+
+    .custom-modal p{
+        color:var(--muted);
+        margin-bottom:24px;
+        line-height:1.7;
+    }
+
+    .modal-actions{
+        display:flex;
+        gap:12px;
+    }
+
+    .btn-cancel,
+    .btn-confirm{
+        flex:1;
+        border:none;
+        padding:12px 16px;
+        border-radius:16px;
+        font-weight:700;
+        transition:.25s ease;
+    }
+
+    .btn-cancel{
+        color:white;
+        background:rgba(255,255,255,.06);
+        border:1px solid rgba(255,255,255,.08);
+    }
+
+    .btn-cancel:hover{
+        transform:translateY(-2px);
+        background:rgba(255,255,255,.1);
+    }
+
+    .btn-confirm{
+        color:white;
+        background:linear-gradient(135deg,var(--danger),var(--danger2));
+        box-shadow:0 15px 35px rgba(239,68,68,.3);
+    }
+
+    .btn-confirm:hover{
+        transform:translateY(-2px);
+        box-shadow:0 22px 45px rgba(239,68,68,.42);
+    }
+
+    /* RESPONSIVE */
+
+    @@media(max-width:768px){
+
+        .admin-header{
+            align-items:flex-start;
+        }
+
+        .stats-wrap{
+            width:100%;
+        }
+
+        .stat-box{
+            flex:1;
+        }
+
+        .search-form{
+            flex-wrap:wrap;
+        }
+
+        .search-btn2{
+            width:100%;
+        }
+
+        .overview-grid{
+            grid-template-columns:repeat(2,minmax(130px,1fr));
+        }
+
+        .section-title{
+            align-items:flex-start;
+        }
+
+        .blocked-item{
+            flex-direction:column;
+            align-items:flex-start;
+        }
+
+        .modal-actions{
+            flex-direction:column;
+        }
+    }
+
+</style>
+
+@{
+    var ilkKanalId = Model.KanalIstatistikleri.FirstOrDefault()?.KullaniciId ?? 0;
+    var adminEmails = ViewBag.AdminEmails as List<string> ?? new List<string>();
+    var adminEmailSet = new HashSet<string>(
+        adminEmails.Select(email => (email ?? "").Trim()),
+        StringComparer.OrdinalIgnoreCase);
+    var toplamKanal = Model.KanalIstatistikleri.Count;
+    var toplamGoruntulenme = Model.KanalIstatistikleri.Sum(k => k.ToplamGoruntulenme);
+    var toplamBegeni = Model.KanalIstatistikleri.Sum(k => k.ToplamLike);
+    var toplamKaydetme = Model.KanalIstatistikleri.Sum(k => k.DahaSonraIzleSayisi);
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+}
+
+<div class="container py-4 admin-page">
+
+    <!-- HEADER -->
+
+    <div class="admin-header">
+
+        <div>
+
+            <div class="page-title">
+                ⚙ Ultra Admin Panel
+            </div>
+
+            <div class="page-sub">
+                Kullanıcıları, videoları ve engellenen e-postaları modern yönetim paneli üzerinden kontrol et.
+            </div>
+
+        </div>
+
+        <div class="stats-wrap">
+
+            <div class="stat-box">
+                <strong>@Model.Kullanicilar.Count</strong>
+                <span>Kullanıcı</span>
+            </div>
+
+            <div class="stat-box">
+                <strong>@Model.Videolar.Count</strong>
+                <span>Video</span>
+            </div>
+
+            <div class="stat-box">
+                <strong>@Model.EngellenenEpostalar.Count</strong>
+                <span>Engelli Mail</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- SEARCH -->
+
+    <div class="search-box">
+
+        <form asp-action="AdminPanel"
+              method="get"
+              class="search-form">
+
+            <div class="search-icon">
+                🔍
+            </div>
+
+            <input type="text"
+                   name="searchTerm"
+                   value="@Context.Request.Query["searchTerm"]"
+                   placeholder="Kullanıcı veya video ara..."
+                   class="search-input2" />
+
+            <button class="search-btn2">
+                Ara
+            </button>
+
+        </form>
+
+        @if (ViewBag.AdminSearchMessage != null)
+        {
+            <div class="empty-state" style="padding:14px 10px 0">
+                @ViewBag.AdminSearchMessage
+            </div>
+        }
+
+    </div>
+
+    <!-- CHANNEL STATS -->
+
+    <div class="section-box active">
+
+        <div class="section-title"
+             onclick="toggleSection(this)">
+
+            <div class="section-left">
+
+                <div class="section-icon">
+                    <i class="fa-solid fa-chart-column"></i>
+                </div>
+
+                <div>
+                    <h3>Kanal İstatistikleri</h3>
+                    <p>Videosu olan kullanıcıların kanal performansı</p>
+                </div>
+
+            </div>
+
+            <div class="toggle-icon">
+                &#9660;
+            </div>
+
+        </div>
+
+        <div class="section-content">
+
+            <div class="analytics-titlebar">
+                <div class="period-text">
+                    @Model.BaslangicTarihi.ToString("dd.MM.yyyy") - @Model.BitisTarihi.ToString("dd.MM.yyyy") arası performans
+                </div>
+
+                <div class="quick-range" aria-label="Hızlı tarih seçimi">
+                    <a asp-action="AdminPanel"
+                       asp-route-searchTerm="@searchTerm"
+                       asp-route-baslangicTarihi="@Model.BitisTarihi.AddDays(-6).ToString("yyyy-MM-dd")"
+                       asp-route-bitisTarihi="@Model.BitisTarihi.ToString("yyyy-MM-dd")">Son 7 gün</a>
+                    <a asp-action="AdminPanel"
+                       asp-route-searchTerm="@searchTerm"
+                       asp-route-baslangicTarihi="@Model.BitisTarihi.AddDays(-29).ToString("yyyy-MM-dd")"
+                       asp-route-bitisTarihi="@Model.BitisTarihi.ToString("yyyy-MM-dd")">Son 30 gün</a>
+                    <a asp-action="AdminPanel"
+                       asp-route-searchTerm="@searchTerm"
+                       asp-route-baslangicTarihi="@Model.BitisTarihi.AddDays(-89).ToString("yyyy-MM-dd")"
+                       asp-route-bitisTarihi="@Model.BitisTarihi.ToString("yyyy-MM-dd")">Son 90 gün</a>
+                    <a asp-action="AdminRapor"
+                       asp-route-searchTerm="@searchTerm"
+                       asp-route-baslangicTarihi="@Model.BaslangicTarihi.ToString("yyyy-MM-dd")"
+                       asp-route-bitisTarihi="@Model.BitisTarihi.ToString("yyyy-MM-dd")"
+                       target="_blank">Raporu Yazdir</a>
+                </div>
+            </div>
+
+            <form asp-action="AdminPanel" method="get" class="stats-filter">
+                <input type="hidden" name="searchTerm" value="@searchTerm" />
+
+                <label>
+                    Başlangıç tarihi
+                    <input type="date" name="baslangicTarihi" value="@Model.BaslangicTarihi.ToString("yyyy-MM-dd")" />
+                </label>
+
+                <label>
+                    Bitiş tarihi
+                    <input type="date" name="bitisTarihi" value="@Model.BitisTarihi.ToString("yyyy-MM-dd")" />
+                </label>
+
+                <button type="submit">Tarihi Uygula</button>
+
+                @if (ViewBag.AdminFilterMessage != null)
+                {
+                    <div class="filter-message">@ViewBag.AdminFilterMessage</div>
+                }
+            </form>
+
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <span>Aktif kanal</span>
+                    <strong>@toplamKanal</strong>
+                </div>
+                <div class="overview-card">
+                    <span>Toplam görüntülenme</span>
+                    <strong>@toplamGoruntulenme</strong>
+                </div>
+                <div class="overview-card">
+                    <span>Toplam beğeni</span>
+                    <strong>@toplamBegeni</strong>
+                </div>
+                <div class="overview-card">
+                    <span>Daha sonra kaydedilen</span>
+                    <strong>@toplamKaydetme</strong>
+                </div>
+            </div>
+
+            @if (!Model.KanalIstatistikleri.Any())
+            {
+                <div class="empty-state">
+                    Henüz videosu olan kullanıcı bulunmuyor.
+                </div>
+            }
+            else
+            {
+                <div class="channel-table-wrap">
+                    <table class="channel-table">
+                        <thead>
+                            <tr>
+                                <th>Kanal</th>
+                                <th>Video</th>
+                                <th>Toplam görüntülenme</th>
+                                <th>Toplam beğeni</th>
+                                <th>Daha sonra kaydedilen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var kanal in Model.KanalIstatistikleri)
+                        {
+                            var aktif = kanal.KullaniciId == ilkKanalId ? "active" : "";
+
+                            <tr class="channel-row @aktif"
+                                tabindex="0"
+                                data-channel-id="@kanal.KullaniciId"
+                                onclick="showChannelStats(@kanal.KullaniciId)"
+                                onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showChannelStats(@kanal.KullaniciId); }">
+                                <td>
+                                    <span class="channel-user-name">@kanal.KullaniciAdi</span>
+                                    <span class="channel-user-meta">@kanal.Email</span>
+                                </td>
+                                <td class="channel-total">@kanal.VideoSayisi</td>
+                                <td class="channel-total">@kanal.ToplamGoruntulenme</td>
+                                <td class="channel-total">@kanal.ToplamLike</td>
+                                <td class="channel-total">@kanal.DahaSonraIzleSayisi</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+
+                        @foreach (var kanal in Model.KanalIstatistikleri)
+                        {
+                            var aktif = kanal.KullaniciId == ilkKanalId ? "active" : "";
+                            var goruntulenmeNoktalari = GraphPoints(kanal.GunlukIstatistikler, item => item.GoruntulenmeSayisi);
+                            var begeniNoktalari = GraphPoints(kanal.GunlukIstatistikler, item => item.BegeniSayisi);
+                            var kaydetmeNoktalari = GraphPoints(kanal.GunlukIstatistikler, item => item.DahaSonraIzleSayisi);
+                            var goruntulenmeAlani = AreaPoints(kanal.GunlukIstatistikler, item => item.GoruntulenmeSayisi);
+                            var begeniAlani = AreaPoints(kanal.GunlukIstatistikler, item => item.BegeniSayisi);
+                            var kaydetmeAlani = AreaPoints(kanal.GunlukIstatistikler, item => item.DahaSonraIzleSayisi);
+                            var maxGoruntulenme = Math.Max(1, kanal.GunlukIstatistikler.Select(item => item.GoruntulenmeSayisi).DefaultIfEmpty(0).Max());
+                            var maxBegeni = Math.Max(1, kanal.GunlukIstatistikler.Select(item => item.BegeniSayisi).DefaultIfEmpty(0).Max());
+                            var maxKaydetme = Math.Max(1, kanal.GunlukIstatistikler.Select(item => item.DahaSonraIzleSayisi).DefaultIfEmpty(0).Max());
+
+                            <div class="channel-panel @aktif"
+                                 data-channel-panel="@kanal.KullaniciId">
+
+                                <div class="chart-card">
+                                    <div class="title">
+                                        @kanal.KullaniciAdi - tarih bazlı kanal performansı
+                                    </div>
+
+                                    <div class="line-chart-grid">
+                                        <div class="line-chart-card">
+                                            <div class="line-chart-header">
+                                                <div class="line-chart-label"><i class="legend-dot" style="background:#1681ff"></i>Görüntülenme</div>
+                                                <div class="line-chart-value">@kanal.ToplamGoruntulenme</div>
+                                            </div>
+                                            <svg class="line-chart" viewBox="0 0 936 228" role="img" aria-label="Günlük görüntülenme grafiği">
+                                                <defs>
+                                                    <linearGradient id="views-area-@kanal.KullaniciId" x1="0" x2="0" y1="0" y2="1">
+                                                        <stop offset="0%" stop-color="#1681ff" stop-opacity=".14"></stop>
+                                                        <stop offset="100%" stop-color="#1681ff" stop-opacity="0"></stop>
+                                                    </linearGradient>
+                                                    <clipPath id="views-clip-@kanal.KullaniciId">
+                                                        <rect x="48" y="20" width="840" height="176"></rect>
+                                                    </clipPath>
+                                                </defs>
+                                                <line class="chart-grid-line" x1="48" y1="20" x2="888" y2="20"></line>
+                                                <line class="chart-grid-line" x1="48" y1="108" x2="888" y2="108"></line>
+                                                <line class="chart-grid-line" x1="48" y1="196" x2="888" y2="196"></line>
+                                                <text class="axis-label" x="10" y="24">@maxGoruntulenme</text>
+                                                <text class="axis-label" x="24" y="200">0</text>
+                                                <polygon class="chart-area"
+                                                         points="@goruntulenmeAlani"
+                                                         fill="url(#views-area-@kanal.KullaniciId)"
+                                                         clip-path="url(#views-clip-@kanal.KullaniciId)"></polygon>
+                                                <polyline class="chart-line views"
+                                                          points="@goruntulenmeNoktalari"
+                                                          clip-path="url(#views-clip-@kanal.KullaniciId)"></polyline>
+                                                @for (var i = 0; i < kanal.GunlukIstatistikler.Count; i++)
+                                                {
+                                                    var gun = kanal.GunlukIstatistikler[i];
+                                                    if (gun.GoruntulenmeSayisi > 0)
+                                                    {
+                                                        var x = SvgNumber(GraphX(i, kanal.GunlukIstatistikler.Count));
+                                                        var y = SvgNumber(GraphY(gun.GoruntulenmeSayisi, maxGoruntulenme));
+                                                        <circle class="chart-point views" cx="@x" cy="@y" r="4"><title>@gun.Tarih.ToString("dd.MM.yyyy"): @gun.GoruntulenmeSayisi</title></circle>
+                                                    }
+                                                }
+                                                <text class="axis-label" x="48" y="220">@Model.BaslangicTarihi.ToString("dd.MM.yyyy")</text>
+                                                <text class="axis-label" x="808" y="220">@Model.BitisTarihi.ToString("dd.MM.yyyy")</text>
+                                            </svg>
+                                        </div>
+
+                                        <div class="line-chart-card">
+                                            <div class="line-chart-header">
+                                                <div class="line-chart-label"><i class="legend-dot" style="background:#ec4899"></i>Beğeni</div>
+                                                <div class="line-chart-value">@kanal.ToplamLike</div>
+                                            </div>
+                                            <svg class="line-chart" viewBox="0 0 936 228" role="img" aria-label="Günlük beğeni grafiği">
+                                                <defs>
+                                                    <linearGradient id="likes-area-@kanal.KullaniciId" x1="0" x2="0" y1="0" y2="1">
+                                                        <stop offset="0%" stop-color="#ec4899" stop-opacity=".13"></stop>
+                                                        <stop offset="100%" stop-color="#ec4899" stop-opacity="0"></stop>
+                                                    </linearGradient>
+                                                    <clipPath id="likes-clip-@kanal.KullaniciId">
+                                                        <rect x="48" y="20" width="840" height="176"></rect>
+                                                    </clipPath>
+                                                </defs>
+                                                <line class="chart-grid-line" x1="48" y1="20" x2="888" y2="20"></line>
+                                                <line class="chart-grid-line" x1="48" y1="108" x2="888" y2="108"></line>
+                                                <line class="chart-grid-line" x1="48" y1="196" x2="888" y2="196"></line>
+                                                <text class="axis-label" x="10" y="24">@maxBegeni</text>
+                                                <text class="axis-label" x="24" y="200">0</text>
+                                                <polygon class="chart-area"
+                                                         points="@begeniAlani"
+                                                         fill="url(#likes-area-@kanal.KullaniciId)"
+                                                         clip-path="url(#likes-clip-@kanal.KullaniciId)"></polygon>
+                                                <polyline class="chart-line likes"
+                                                          points="@begeniNoktalari"
+                                                          clip-path="url(#likes-clip-@kanal.KullaniciId)"></polyline>
+                                                @for (var i = 0; i < kanal.GunlukIstatistikler.Count; i++)
+                                                {
+                                                    var gun = kanal.GunlukIstatistikler[i];
+                                                    if (gun.BegeniSayisi > 0)
+                                                    {
+                                                        var x = SvgNumber(GraphX(i, kanal.GunlukIstatistikler.Count));
+                                                        var y = SvgNumber(GraphY(gun.BegeniSayisi, maxBegeni));
+                                                        <circle class="chart-point likes" cx="@x" cy="@y" r="4"><title>@gun.Tarih.ToString("dd.MM.yyyy"): @gun.BegeniSayisi</title></circle>
+                                                    }
+                                                }
+                                                <text class="axis-label" x="48" y="220">@Model.BaslangicTarihi.ToString("dd.MM.yyyy")</text>
+                                                <text class="axis-label" x="808" y="220">@Model.BitisTarihi.ToString("dd.MM.yyyy")</text>
+                                            </svg>
+                                        </div>
+
+                                        <div class="line-chart-card">
+                                            <div class="line-chart-header">
+                                                <div class="line-chart-label"><i class="legend-dot" style="background:#22c55e"></i>Daha sonra izleye kaydetme</div>
+                                                <div class="line-chart-value">@kanal.DahaSonraIzleSayisi</div>
+                                            </div>
+                                            <svg class="line-chart" viewBox="0 0 936 228" role="img" aria-label="Günlük daha sonra izleye kaydetme grafiği">
+                                                <defs>
+                                                    <linearGradient id="watch-area-@kanal.KullaniciId" x1="0" x2="0" y1="0" y2="1">
+                                                        <stop offset="0%" stop-color="#22c55e" stop-opacity=".13"></stop>
+                                                        <stop offset="100%" stop-color="#22c55e" stop-opacity="0"></stop>
+                                                    </linearGradient>
+                                                    <clipPath id="watch-clip-@kanal.KullaniciId">
+                                                        <rect x="48" y="20" width="840" height="176"></rect>
+                                                    </clipPath>
+                                                </defs>
+                                                <line class="chart-grid-line" x1="48" y1="20" x2="888" y2="20"></line>
+                                                <line class="chart-grid-line" x1="48" y1="108" x2="888" y2="108"></line>
+                                                <line class="chart-grid-line" x1="48" y1="196" x2="888" y2="196"></line>
+                                                <text class="axis-label" x="10" y="24">@maxKaydetme</text>
+                                                <text class="axis-label" x="24" y="200">0</text>
+                                                <polygon class="chart-area"
+                                                         points="@kaydetmeAlani"
+                                                         fill="url(#watch-area-@kanal.KullaniciId)"
+                                                         clip-path="url(#watch-clip-@kanal.KullaniciId)"></polygon>
+                                                <polyline class="chart-line watch"
+                                                          points="@kaydetmeNoktalari"
+                                                          clip-path="url(#watch-clip-@kanal.KullaniciId)"></polyline>
+                                                @for (var i = 0; i < kanal.GunlukIstatistikler.Count; i++)
+                                                {
+                                                    var gun = kanal.GunlukIstatistikler[i];
+                                                    if (gun.DahaSonraIzleSayisi > 0)
+                                                    {
+                                                        var x = SvgNumber(GraphX(i, kanal.GunlukIstatistikler.Count));
+                                                        var y = SvgNumber(GraphY(gun.DahaSonraIzleSayisi, maxKaydetme));
+                                                        <circle class="chart-point watch" cx="@x" cy="@y" r="4"><title>@gun.Tarih.ToString("dd.MM.yyyy"): @gun.DahaSonraIzleSayisi</title></circle>
+                                                    }
+                                                }
+                                                <text class="axis-label" x="48" y="220">@Model.BaslangicTarihi.ToString("dd.MM.yyyy")</text>
+                                                <text class="axis-label" x="808" y="220">@Model.BitisTarihi.ToString("dd.MM.yyyy")</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+            }
+
+        </div>
+
+    </div>
+
+    <!-- USERS -->
+
+    <div class="section-box active">
+
+        <div class="section-title"
+             onclick="toggleSection(this)">
+
+            <div class="section-left">
+
+                <div class="section-icon">
+                    👤
+                </div>
+
+                <div>
+                    <h3>Kullanıcı Yönetimi</h3>
+                    <p>Sistemde kayıtlı kullanıcılar</p>
+                </div>
+
+            </div>
+
+            <div class="toggle-icon">
+                ▼
+            </div>
+
+        </div>
+
+        <div class="section-content">
+
+            <div class="grid">
+
+                @foreach (var user in Model.Kullanicilar)
+                {
+                    var kullaniciAdi = string.IsNullOrWhiteSpace(user.KullaniciAdi) ? "?" : user.KullaniciAdi;
+                    var adminKullanici = adminEmailSet.Contains((user.Email ?? "").Trim());
+
+                    <div class="card-modern">
+
+                        <div class="card-top">
+
+                            <div class="avatar">
+                                @kullaniciAdi.Substring(0,1).ToUpper()
+                            </div>
+
+                            <div>
+
+                                <div class="title">
+                                    @kullaniciAdi
+                                </div>
+
+                                <div class="meta">
+                                    📧 @user.Email
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="meta-row">
+
+                            <div class="chip">
+                                👤 Kullanıcı
+                            </div>
+
+                            <div class="chip">
+                                🟢 Aktif
+                            </div>
+
+                        </div>
+
+                        <div class="action-group">
+                            @if (!adminKullanici)
+                            {
+
+                            <form asp-action="KullaniciSil"
+                                  method="post"
+                                  onsubmit="return showConfirm(this,'Kullanıcı Sil','Bu kullanıcıyı silmek istediğine emin misin?')">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@user.Id" />
+
+                                <button class="icon-btn delete-btn">
+                                    🗑 Kullanıcıyı Sil
+                                </button>
+
+                            </form>
+
+                            <form asp-action="EmailEngelle"
+                                  method="post"
+                                  onsubmit="return showConfirm(this,'Email Engelle','Bu email adresini engellemek istiyor musun?')">
+
+                                <input type="hidden"
+                                       name="email"
+                                       value="@user.Email" />
+
+                                <button class="icon-btn delete-btn">
+                                    🚫 Emaili Engelle
+                                </button>
+
+                            </form>
+
+                            }
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- VIDEOS -->
+
+    <div class="section-box active">
+
+        <div class="section-title"
+             onclick="toggleSection(this)">
+
+            <div class="section-left">
+
+                <div class="section-icon">
+                    🎬
+                </div>
+
+                <div>
+                    <h3>Video Yönetimi</h3>
+                    <p>Platformdaki videoları yönet</p>
+                </div>
+
+            </div>
+
+            <div class="toggle-icon">
+                ▼
+            </div>
+
+        </div>
+
+        <div class="section-content">
+
+            <div class="grid">
+
+                @foreach (var video in Model.Videolar)
+                {
+                    <div class="card-modern">
+
+                        <div class="card-top">
+
+                            <div class="avatar">
+                                🎥
+                            </div>
+
+                            <div>
+
+                                <div class="title">
+                                    @video.Baslik
+                                </div>
+
+                                <div class="meta">
+                                    Video ID: #@video.Id
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="meta-row">
+
+                            <div class="chip">
+                                👁 @video.IzlenmeSayisi
+                            </div>
+
+                            <div class="chip">
+                                👍 @video.LikeSayisi
+                            </div>
+
+                        </div>
+
+                        <div class="action-group">
+
+                            <form asp-action="AdminVideoSil"
+                                  method="post"
+                                  onsubmit="return showConfirm(this,'Video Sil','Bu videoyu silmek istediğine emin misin?')">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@video.Id" />
+
+                                <button class="icon-btn delete-btn">
+                                    🗑 Videoyu Sil
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BLOCKED EMAILS -->
+
+    <div class="section-box active">
+
+        <div class="section-title"
+             onclick="toggleSection(this)">
+
+            <div class="section-left">
+
+                <div class="section-icon">
+                    🚫
+                </div>
+
+                <div>
+                    <h3>Engellenen E-postalar</h3>
+                    <p>Engellenmiş hesap listesi</p>
+                </div>
+
+            </div>
+
+            <div class="toggle-icon">
+                ▼
+            </div>
+
+        </div>
+
+        <div class="section-content">
+
+            @if (!Model.EngellenenEpostalar.Any())
+            {
+                <div class="empty-state">
+                    Henüz engellenmiş e-posta bulunmuyor.
+                </div>
+            }
+            else
+            {
+                <div class="blocked-list">
+
+                    @foreach (var email in Model.EngellenenEpostalar)
+                    {
+                        <div class="blocked-item">
+
+                            <div class="email-text">
+                                📧 @email
+                            </div>
+
+                            <form asp-action="EmailEngelKaldir"
+                                  method="post"
+                                  onsubmit="return showConfirm(this,'Engeli Kaldır','Bu email adresinin engelini kaldırmak istiyor musun?')">
+
+                                <input type="hidden"
+                                       name="email"
+                                       value="@email" />
+
+                                <button class="icon-btn delete-btn">
+                                    🔓 Engeli Kaldır
+                                </button>
+
+                            </form>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MODAL -->
+
+<div id="customConfirm"
+     class="custom-modal">
+
+    <div class="custom-modal-content">
+
+        <div class="modal-icon">
+            ⚠
+        </div>
+
+        <h3 id="confirmTitle"></h3>
+
+        <p id="confirmText"></p>
+
+        <div class="modal-actions">
+
+            <button class="btn-cancel"
+                    onclick="closeConfirm()">
+
+                Vazgeç
+
+            </button>
+
+            <button class="btn-confirm"
+                    id="confirmBtn">
+
+                Evet
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    let selectedForm = null;
+
+    function showConfirm(form, title, text) {
+
+        selectedForm = form;
+
+        document.getElementById("confirmTitle").innerText = title;
+        document.getElementById("confirmText").innerText = text;
+
+        document.getElementById("customConfirm").style.display = "flex";
+
+        return false;
+    }
+
+    function closeConfirm() {
+
+        document.getElementById("customConfirm").style.display = "none";
+        selectedForm = null;
+    }
+
+    document
+        .getElementById("confirmBtn")
+        .addEventListener("click", function () {
+
+            if (selectedForm) {
+                selectedForm.submit();
+            }
+        });
+
+    function toggleSection(header) {
+
+        const box = header.parentElement;
+        const content = box.querySelector(".section-content");
+
+        content.classList.toggle("closed");
+        box.classList.toggle("active");
+    }
+
+    function showChannelStats(channelId) {
+
+        document
+            .querySelectorAll(".channel-row")
+            .forEach(button => button.classList.toggle("active", button.dataset.channelId == channelId));
+
+        document
+            .querySelectorAll(".channel-panel")
+            .forEach(panel => panel.classList.toggle("active", panel.dataset.channelPanel == channelId));
+    }
+
+</script>

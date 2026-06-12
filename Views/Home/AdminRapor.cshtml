@@ -1,0 +1,370 @@
+@model Loopin.Models.AdminPanelViewModel
+
+@{
+    ViewData["Title"] = "Admin Rapor";
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var toplamGoruntulenme = Model.KanalIstatistikleri.Sum(k => k.ToplamGoruntulenme);
+    var toplamBegeni = Model.KanalIstatistikleri.Sum(k => k.ToplamLike);
+    var toplamKaydetme = Model.KanalIstatistikleri.Sum(k => k.DahaSonraIzleSayisi);
+}
+
+<style>
+    :root {
+        --report-bg: #050816;
+        --report-panel: rgba(15, 23, 42, .94);
+        --report-border: rgba(255, 255, 255, .1);
+        --report-text: #f8fafc;
+        --report-muted: #94a3b8;
+        --report-blue: #38bdf8;
+        --report-pink: #f472b6;
+        --report-green: #34d399;
+    }
+
+    body {
+        background: linear-gradient(180deg, #050816, #0b1020 55%, #050816);
+        color: var(--report-text);
+    }
+
+    .report-page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+    }
+
+    .report-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .report-title {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        font-weight: 900;
+        line-height: 1;
+        background: linear-gradient(90deg, #38bdf8, #a78bfa, #f472b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .report-sub {
+        margin: 0;
+        color: var(--report-muted);
+    }
+
+    .report-toolbar,
+    .report-card,
+    .report-table-wrap {
+        background: var(--report-panel);
+        border: 1px solid var(--report-border);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, .32);
+    }
+
+    .report-toolbar {
+        display: flex;
+        gap: 12px;
+        align-items: end;
+        flex-wrap: wrap;
+        padding: 16px;
+        border-radius: 18px;
+        margin-bottom: 18px;
+    }
+
+    .report-toolbar label {
+        display: grid;
+        gap: 6px;
+        color: var(--report-muted);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .report-toolbar input {
+        height: 42px;
+        min-width: 180px;
+        color: white;
+        color-scheme: dark;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, .1);
+        background: rgba(255, 255, 255, .06);
+        padding: 0 12px;
+    }
+
+    .report-btn {
+        height: 42px;
+        border: 0;
+        border-radius: 12px;
+        padding: 0 18px;
+        color: white;
+        font-weight: 800;
+        background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .report-btn.secondary {
+        background: rgba(255, 255, 255, .08);
+        border: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .report-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(130px, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .report-card {
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .report-card span {
+        color: var(--report-muted);
+        font-size: 12px;
+    }
+
+    .report-card strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 28px;
+        line-height: 1;
+    }
+
+    .report-section {
+        margin-top: 22px;
+    }
+
+    .report-section h2 {
+        margin: 0 0 12px;
+        font-size: 20px;
+    }
+
+    .report-table-wrap {
+        border-radius: 18px;
+        overflow: auto;
+    }
+
+    .report-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, .08);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .report-table th {
+        color: #cbd5e1;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+
+    .report-table td {
+        color: #e5e7eb;
+    }
+
+    .muted {
+        color: var(--report-muted);
+        font-size: 12px;
+    }
+
+    @@media (max-width: 840px) {
+        .report-grid {
+            grid-template-columns: repeat(2, minmax(130px, 1fr));
+        }
+
+        .report-toolbar input,
+        .report-toolbar .report-btn {
+            width: 100%;
+        }
+    }
+
+    @@media print {
+        body {
+            background: white !important;
+            color: #111827 !important;
+        }
+
+        .navbar,
+        .report-toolbar,
+        .no-print {
+            display: none !important;
+        }
+
+        .report-page {
+            max-width: none;
+            padding: 0;
+        }
+
+        .report-title {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827;
+            background: none;
+        }
+
+        .report-sub,
+        .muted,
+        .report-card span {
+            color: #4b5563 !important;
+        }
+
+        .report-card,
+        .report-table-wrap {
+            border: 1px solid #d1d5db;
+            box-shadow: none;
+            background: white;
+        }
+
+        .report-table th,
+        .report-table td {
+            color: #111827;
+            border-bottom: 1px solid #e5e7eb;
+        }
+    }
+</style>
+
+<main class="report-page">
+    <div class="report-top">
+        <div>
+            <h1 class="report-title">Loopin Admin Raporu</h1>
+            <p class="report-sub">
+                @Model.BaslangicTarihi.ToString("dd.MM.yyyy") - @Model.BitisTarihi.ToString("dd.MM.yyyy") arasi platform ozeti
+            </p>
+        </div>
+
+        <div class="no-print">
+            <button type="button" class="report-btn" onclick="window.print()">Yazdir / PDF</button>
+            <button type="button" class="report-btn secondary" onclick="shareReport()">Paylas</button>
+        </div>
+    </div>
+
+    <form asp-action="AdminRapor" method="get" class="report-toolbar">
+        <label>
+            Arama
+            <input type="text" name="searchTerm" value="@searchTerm" placeholder="Kullanici veya video" />
+        </label>
+        <label>
+            Baslangic
+            <input type="date" name="baslangicTarihi" value="@Model.BaslangicTarihi.ToString("yyyy-MM-dd")" />
+        </label>
+        <label>
+            Bitis
+            <input type="date" name="bitisTarihi" value="@Model.BitisTarihi.ToString("yyyy-MM-dd")" />
+        </label>
+        <button type="submit" class="report-btn">Filtrele</button>
+        <a class="report-btn secondary" asp-action="AdminPanel" asp-route-searchTerm="@searchTerm">Panele Don</a>
+    </form>
+
+    <section class="report-grid" aria-label="Rapor ozeti">
+        <div class="report-card">
+            <span>Kullanici</span>
+            <strong>@Model.Kullanicilar.Count</strong>
+        </div>
+        <div class="report-card">
+            <span>Video</span>
+            <strong>@Model.Videolar.Count</strong>
+        </div>
+        <div class="report-card">
+            <span>Goruntulenme</span>
+            <strong>@toplamGoruntulenme</strong>
+        </div>
+        <div class="report-card">
+            <span>Begeni</span>
+            <strong>@toplamBegeni</strong>
+        </div>
+        <div class="report-card">
+            <span>Kaydetme</span>
+            <strong>@toplamKaydetme</strong>
+        </div>
+    </section>
+
+    <section class="report-section">
+        <h2>Kanal Performansi</h2>
+        <div class="report-table-wrap">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Kanal</th>
+                        <th>E-posta</th>
+                        <th>Video</th>
+                        <th>Goruntulenme</th>
+                        <th>Begeni</th>
+                        <th>Kaydetme</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var kanal in Model.KanalIstatistikleri)
+                    {
+                        <tr>
+                            <td>@kanal.KullaniciAdi</td>
+                            <td>@kanal.Email</td>
+                            <td>@kanal.VideoSayisi</td>
+                            <td>@kanal.ToplamGoruntulenme</td>
+                            <td>@kanal.ToplamLike</td>
+                            <td>@kanal.DahaSonraIzleSayisi</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="report-section">
+        <h2>Video Listesi</h2>
+        <div class="report-table-wrap">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Baslik</th>
+                        <th>Kanal</th>
+                        <th>Yuklenme</th>
+                        <th>Izlenme</th>
+                        <th>Begeni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var video in Model.Videolar)
+                    {
+                        <tr>
+                            <td>
+                                @video.Baslik
+                                <div class="muted">ID: @video.Id</div>
+                            </td>
+                            <td>@(video.Kullanici?.KullaniciAdi ?? "Bilinmiyor")</td>
+                            <td>@video.YuklenmeTarihi.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@video.IzlenmeSayisi</td>
+                            <td>@video.LikeSayisi</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script>
+    async function shareReport() {
+        const url = window.location.href;
+
+        if (navigator.share) {
+            await navigator.share({
+                title: "Loopin Admin Raporu",
+                url
+            });
+            return;
+        }
+
+        await navigator.clipboard.writeText(url);
+        alert("Rapor baglantisi kopyalandi.");
+    }
+</script>

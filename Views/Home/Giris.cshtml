@@ -1,0 +1,439 @@
+@{
+    ViewBag.Title = "Giriş Yap";
+}
+
+<style>
+
+    :root{
+        --purple:#7c5cff;
+        --purple2:#b14dff;
+        --bg-dark:#070710;
+        --card:rgba(255,255,255,0.06);
+        --border:rgba(255,255,255,0.08);
+        --text:#ffffff;
+        --muted:#a9a9c7;
+    }
+
+    body {
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+            radial-gradient(circle at top left, rgba(124,92,255,0.22), transparent 28%),
+            radial-gradient(circle at bottom right, rgba(177,77,255,0.16), transparent 30%),
+            linear-gradient(160deg, #05050c, #0d0e1c 52%, #090912);
+        position: relative;
+    }
+
+    body::before{
+        content:"";
+        position:fixed;
+        inset:0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size:40px 40px;
+        pointer-events:none;
+        z-index:-1;
+    }
+
+    /* WRAPPER */
+
+    .auth-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 60px;
+        padding-bottom: 40px;
+        position: relative;
+    }
+
+    /* FLOATING GLOW */
+
+    .auth-wrapper::before{
+        content:"";
+        position:absolute;
+        width:420px;
+        height:420px;
+        background: radial-gradient(circle,
+            rgba(124,92,255,0.28),
+            transparent 70%);
+        top:-120px;
+        filter: blur(20px);
+        z-index:0;
+    }
+
+    /* CARD */
+
+    .auth-container {
+        width: 100%;
+        max-width: 430px;
+        padding: 38px;
+        border-radius: 34px;
+        position: relative;
+        overflow: hidden;
+        z-index: 2;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.07),
+                rgba(255,255,255,0.03)
+            );
+
+        backdrop-filter: blur(28px);
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        box-shadow:
+            0 25px 70px rgba(0,0,0,0.45),
+            0 0 40px rgba(124,92,255,0.10),
+            inset 0 1px 0 rgba(255,255,255,0.05);
+
+        animation: cardShow .5s ease;
+    }
+
+    .auth-container::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(124,92,255,0.10),
+                transparent 40%,
+                rgba(177,77,255,0.08)
+            );
+        pointer-events:none;
+    }
+
+    @@keyframes cardShow{
+        from{
+            opacity:0;
+            transform:translateY(18px) scale(.98);
+        }
+        to{
+            opacity:1;
+            transform:translateY(0) scale(1);
+        }
+    }
+
+    /* HEADER */
+
+    .auth-title {
+        text-align: center;
+        margin-bottom: 10px;
+        font-weight: 800;
+        font-size: 34px;
+        color: white;
+        letter-spacing: -1px;
+    }
+
+    .auth-subtitle{
+        text-align:center;
+        color: var(--muted);
+        margin-bottom: 30px;
+        font-size: 14px;
+    }
+
+    .logo-circle{
+        width:78px;
+        height:78px;
+        margin:0 auto 22px;
+        border-radius:24px;
+        background: linear-gradient(135deg,var(--purple),var(--purple2));
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:30px;
+        color:white;
+
+        box-shadow:
+            0 12px 35px rgba(124,92,255,0.45),
+            0 0 25px rgba(177,77,255,0.35);
+
+        animation: floaty 3s ease-in-out infinite;
+    }
+
+    @@keyframes floaty{
+        0%{
+            transform:translateY(0px);
+        }
+        50%{
+            transform:translateY(-6px);
+        }
+        100%{
+            transform:translateY(0px);
+        }
+    }
+
+    /* FORM */
+
+    .mb-3{
+        margin-bottom:20px !important;
+    }
+
+    label {
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: #c9c9df;
+        font-weight: 600;
+        display:block;
+        letter-spacing:.3px;
+    }
+
+    .form-control {
+        border-radius: 18px;
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.08);
+        color: white !important;
+        padding: 16px 18px;
+        font-size: 15px;
+        transition: .28s ease;
+
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .form-control::placeholder{
+        color:#9d9dc0;
+    }
+
+    .form-control:hover{
+        border-color: rgba(124,92,255,0.25);
+    }
+
+    .form-control:focus {
+        border-color: rgba(124,92,255,0.7);
+        background: rgba(255,255,255,0.07) !important;
+        box-shadow:
+            0 0 0 4px rgba(124,92,255,0.14),
+            0 0 30px rgba(124,92,255,0.18);
+    }
+
+    /* BUTTON */
+
+    .btn-auth {
+        background: linear-gradient(
+            135deg,
+            var(--purple),
+            var(--purple2)
+        );
+
+        border: none;
+        width: 100%;
+        padding: 16px;
+        border-radius: 22px;
+        color: white;
+        font-weight: 700;
+        letter-spacing: .4px;
+        font-size: 15px;
+
+        transition: .28s ease;
+
+        box-shadow:
+            0 15px 35px rgba(124,92,255,0.35);
+    }
+
+    .btn-auth:hover {
+        transform: translateY(-3px) scale(1.01);
+
+        box-shadow:
+            0 20px 40px rgba(124,92,255,0.50);
+    }
+
+    .btn-auth:active{
+        transform:scale(.99);
+    }
+
+    /* ALERT */
+
+    .custom-alert {
+        padding: 16px 18px;
+        border-radius: 18px;
+        margin-bottom: 18px;
+        font-size: 14px;
+        font-weight: 500;
+        backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: fadeIn .4s ease;
+        border:1px solid rgba(255,255,255,0.06);
+    }
+
+    .custom-alert.error {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255,77,77,0.20),
+                rgba(122,0,0,0.16)
+            );
+
+        color: #ffd5d5;
+        border-left: 4px solid #ff4d4d;
+
+        box-shadow:
+            0 10px 30px rgba(255,77,77,0.12);
+    }
+
+    .custom-alert.success {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(124,92,255,0.20),
+                rgba(177,77,255,0.18)
+            );
+
+        color: #f2ecff;
+        border-left: 4px solid #7c5cff;
+
+        box-shadow:
+            0 10px 30px rgba(124,92,255,0.15);
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* LINKS */
+
+    p{
+        color:#bdbddd;
+        font-size:14px;
+    }
+
+    a {
+        color: #c084fc;
+        text-decoration: none;
+        font-weight: 600;
+        transition:.2s;
+    }
+
+    a:hover {
+        color:white;
+        text-shadow:0 0 12px rgba(192,132,252,.45);
+    }
+
+    /* MOBILE */
+
+    @@media(max-width:576px){
+
+        .auth-wrapper{
+            padding:20px;
+            padding-top:35px;
+        }
+
+        .auth-container{
+            padding:28px 22px;
+            border-radius:28px;
+        }
+
+        .auth-title{
+            font-size:28px;
+        }
+
+    }
+
+</style>
+
+<div class="auth-wrapper">
+
+    <div class="auth-container">
+
+        <div class="logo-circle">
+            <i class="fa-solid fa-play"></i>
+        </div>
+
+        <h2 class="auth-title">Loopin</h2>
+
+        <div class="auth-subtitle">
+            Yeni nesil video platformuna giriş yap
+        </div>
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="custom-alert error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>@(ViewBag.ErrorMessage)</span>
+            </div>
+        }
+
+        @if (ViewBag.ErrorMessage1 != null || ViewBag.ErrorMessage2 != null)
+        {
+            <div class="custom-alert error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>@(ViewBag.ErrorMessage1 ?? ViewBag.ErrorMessage2)</span>
+            </div>
+        }
+
+        @if (ViewBag.SuccessMessage != null)
+        {
+            <div class="custom-alert success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>@ViewBag.SuccessMessage</span>
+            </div>
+        }
+
+        <form asp-action="Giris" method="post">
+
+            <div class="mb-3">
+                <label>E-posta</label>
+
+                <input type="email"
+                       name="Email"
+                       class="form-control"
+                       placeholder="ornek@mail.com"
+                       required />
+            </div>
+
+            <div class="mb-3">
+                <label>Şifre</label>
+
+                <input type="password"
+                       name="Sifre"
+                       class="form-control"
+                       placeholder="••••••••"
+                       required />
+            </div>
+
+            <div class="mb-3">
+                <label>Güvenlik Kodu (@ViewBag.SecurityQuestion)</label>
+
+                <input type="text"
+                       name="GuvenlikKodu"
+                       class="form-control"
+                       placeholder="Sonucu yaz"
+                       inputmode="numeric"
+                       required />
+            </div>
+
+            <button type="submit" class="btn-auth">
+                <i class="fa-solid fa-rocket"></i>
+                Giriş Yap
+            </button>
+
+        </form>
+
+        <p class="text-center mt-4">
+            Hesabın yok mu?
+            <a asp-action="Kayit">Kayıt Ol</a>
+        </p>
+
+        <p class="text-center mt-2">
+            <a asp-action="SifremiUnuttum">
+                <i class="fa-solid fa-key"></i>
+                Şifremi unuttum
+            </a>
+        </p>
+
+    </div>
+
+</div>

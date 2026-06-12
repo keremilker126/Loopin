@@ -1,0 +1,792 @@
+@{
+    ViewData["Title"] = "Video Yükle";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+<style>
+    :root {
+        --purple: #7c5cff;
+        --purple2: #b14dff;
+        --bg: #090910;
+        --card: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #ffffff;
+        --muted: #9f9fc1;
+    }
+
+    /* PAGE */
+
+    .upload-page {
+        min-height: 100vh;
+        padding: 40px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-page::before {
+        content: "";
+        position: fixed;
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(rgba(124, 92, 255, 0.18), transparent 70%);
+        top: -250px;
+        right: -150px;
+        pointer-events: none;
+    }
+
+    .upload-page::after {
+        content: "";
+        position: fixed;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(rgba(177, 77, 255, 0.12), transparent 70%);
+        bottom: -250px;
+        left: -150px;
+        pointer-events: none;
+    }
+
+    /* WRAPPER */
+
+    .upload-wrapper {
+        width: 100%;
+        max-width: 860px;
+        margin: auto;
+        position: relative;
+        z-index: 2;
+        animation: fadeIn 0.45s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* HERO */
+
+    .upload-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 36px;
+        padding: 42px;
+        margin-bottom: 28px;
+        background:
+            radial-gradient(circle at top left,
+                rgba(124, 92, 255, 0.25),
+                transparent 35%),
+            radial-gradient(circle at bottom right,
+                rgba(177, 77, 255, 0.18),
+                transparent 35%),
+            rgba(255, 255, 255, 0.05);
+
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(24px);
+
+        box-shadow:
+            0 25px 60px rgba(0, 0, 0, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .upload-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #ddd6ff;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .upload-title {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        line-height: 1.1;
+        letter-spacing: -1px;
+    }
+
+    .upload-title span {
+        background: linear-gradient(135deg, #ffffff, #b896ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .upload-subtitle {
+        max-width: 650px;
+        color: var(--muted);
+        line-height: 1.8;
+        font-size: 15px;
+    }
+
+    /* FORM CARD */
+
+    .upload-card {
+        border-radius: 36px;
+        padding: 34px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(24px);
+
+        box-shadow:
+            0 25px 60px rgba(0, 0, 0, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    /* ALERT */
+
+    .modern-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 18px;
+        border-radius: 22px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+    }
+
+    .alert-error {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.25);
+        color: #fecaca;
+    }
+
+    .alert-success {
+        background: rgba(34, 197, 94, 0.12);
+        border-color: rgba(34, 197, 94, 0.25);
+        color: #bbf7d0;
+    }
+
+    .modern-alert i {
+        margin-top: 2px;
+        font-size: 18px;
+    }
+
+    /* FORM */
+
+    .form-grid {
+        display: grid;
+        gap: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #d7d7ef;
+    }
+
+    .modern-input,
+    .modern-textarea {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: white;
+        border-radius: 22px;
+        padding: 18px 20px;
+        outline: none;
+        transition: 0.25s ease;
+        font-size: 15px;
+        backdrop-filter: blur(10px);
+    }
+
+    .modern-textarea {
+        min-height: 140px;
+        resize: vertical;
+    }
+
+    .modern-input:focus,
+    .modern-textarea:focus {
+        border-color: rgba(124, 92, 255, 0.55);
+        box-shadow:
+            0 0 0 4px rgba(124, 92, 255, 0.12),
+            0 0 30px rgba(124, 92, 255, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .modern-input::placeholder,
+    .modern-textarea::placeholder {
+        color: #8f8fb0;
+    }
+
+    /* DROPZONE */
+
+    .upload-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    .drop-zone {
+        position: relative;
+        overflow: hidden;
+        border-radius: 30px;
+        padding: 34px 24px;
+        text-align: center;
+        cursor: pointer;
+        border: 2px dashed rgba(124, 92, 255, 0.45);
+        background:
+            linear-gradient(180deg,
+                rgba(124, 92, 255, 0.10),
+                rgba(255, 255, 255, 0.03));
+
+        transition: 0.3s ease;
+    }
+
+    .drop-zone:hover {
+        transform: translateY(-4px);
+        border-color: rgba(124, 92, 255, 0.8);
+        box-shadow:
+            0 20px 40px rgba(124, 92, 255, 0.15);
+    }
+
+    .drop-zone::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(rgba(124, 92, 255, 0.15), transparent 70%);
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .drop-zone:hover::before {
+        opacity: 1;
+    }
+
+    .drop-zone input {
+        display: none;
+    }
+
+    .drop-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 28px;
+        margin: auto;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--purple), var(--purple2));
+        font-size: 32px;
+        color: white;
+        box-shadow: 0 20px 40px rgba(124, 92, 255, 0.35);
+    }
+
+    .drop-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .drop-text {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .file-preview {
+        margin-top: 18px;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 13px;
+        color: #d4d4f7;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        word-break: break-word;
+    }
+
+    /* BUTTON */
+
+    .btn-upload-modern {
+        width: 100%;
+        border: none;
+        border-radius: 24px;
+        padding: 20px;
+        margin-top: 10px;
+
+        background: linear-gradient(135deg,
+                var(--purple),
+                var(--purple2));
+
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        transition: 0.3s ease;
+
+        box-shadow:
+            0 20px 40px rgba(124, 92, 255, 0.35);
+    }
+
+    .btn-upload-modern:hover {
+        transform: translateY(-3px);
+        box-shadow:
+            0 25px 50px rgba(124, 92, 255, 0.5);
+    }
+
+    .btn-upload-modern:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* LOADING */
+
+    #loadingScreen {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.82);
+        backdrop-filter: blur(14px);
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .loading-box {
+        text-align: center;
+    }
+
+    .loading-spinner {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        border: 5px solid rgba(255, 255, 255, 0.08);
+        border-top: 5px solid #9f7cff;
+        animation: spin 1s linear infinite;
+        margin: auto;
+        margin-bottom: 24px;
+    }
+
+    @@keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-title {
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .loading-subtitle {
+        color: #c7c7de;
+    }
+
+    /* MOBILE */
+
+    @@media(max-width:768px) {
+
+        .upload-title {
+            font-size: 36px;
+        }
+
+        .upload-card,
+        .upload-hero {
+            padding: 24px;
+            border-radius: 28px;
+        }
+
+        .upload-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .drop-zone {
+            padding: 28px 18px;
+        }
+    }
+</style>
+
+<!-- LOADING -->
+<div id="loadingScreen">
+
+    <div class="loading-box">
+
+        <div class="loading-spinner"></div>
+
+        <div class="loading-title">
+            Video Yükleniyor...
+        </div>
+
+        <div class="loading-subtitle">
+            Videon işleniyor, lütfen bekle 🚀
+        </div>
+
+    </div>
+
+</div>
+
+<div class="upload-page">
+
+    <div class="upload-wrapper">
+
+        <!-- HERO -->
+        <div class="upload-hero">
+
+            <div class="upload-badge">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                İçerik Üretmeye Başla
+            </div>
+
+            <div class="upload-title">
+                Yeni Bir <span>Video Yükle</span>
+            </div>
+
+            <div class="upload-subtitle">
+                Videonu yükle, topluluğunla paylaş ve Loopin dünyasında
+                içerik üretmeye başla.
+            </div>
+
+        </div>
+
+        <!-- FORM CARD -->
+        <div class="upload-card">
+
+            <!-- ERRORS -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="modern-alert alert-error">
+
+                    <i class="fa-solid fa-circle-exclamation"></i>
+
+                    <div>
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div>• @error.ErrorMessage</div>
+                        }
+                    </div>
+
+                </div>
+            }
+
+            <!-- SUCCESS -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="modern-alert alert-success">
+
+                    <i class="fa-solid fa-circle-check"></i>
+
+                    <div>
+                        @TempData["Success"]
+                    </div>
+
+                </div>
+            }
+
+            <!-- FORM -->
+            <form method="post" enctype="multipart/form-data" onsubmit="return showLoading()">
+
+                <div class="form-grid">
+
+                    <!-- TITLE -->
+                    <div class="form-group">
+
+                        <label>
+                            Video Başlığı
+                        </label>
+
+                        <input type="text" name="Baslik" class="modern-input"
+                               placeholder="Videon için dikkat çekici bir başlık yaz..." required />
+
+                    </div>
+
+                    <!-- DESCRIPTION -->
+                    <div class="form-group">
+
+                        <label>
+                            Açıklama
+                        </label>
+
+                        <textarea name="Aciklama" class="modern-textarea"
+                                  placeholder="Videon hakkında kısa bir açıklama yaz..."></textarea>
+
+                    </div>
+
+                    <!-- FILES -->
+                    <div class="upload-grid">
+
+                        <!-- COVER -->
+                        <div>
+
+                            <label>
+                                Kapak Resmi
+                            </label>
+
+                            <div class="drop-zone" onclick="document.getElementById('cover').click()">
+
+                                <div class="drop-icon">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+
+                                <div class="drop-title">
+                                    Kapak Resmi Seç
+                                </div>
+
+                                <div class="drop-text">
+                                    PNG, JPG veya WEBP yükleyebilirsin
+                                    <br />
+                                    Maksimum 5MB
+                                </div>
+
+                                <input type="file" id="cover" name="KapakResmi" accept=".jpg,.jpeg,.png,image/*"/>
+
+                            </div>
+
+                            <div class="file-preview" id="coverName">
+                                Henüz kapak resmi seçilmedi
+                            </div>
+
+                        </div>
+
+                        <!-- VIDEO -->
+                        <div>
+
+                            <label>
+                                Video Dosyası
+                            </label>
+
+                            <div class="drop-zone" onclick="document.getElementById('file').click()">
+
+                                <div class="drop-icon">
+                                    <i class="fa-solid fa-video"></i>
+                                </div>
+
+                                <div class="drop-title">
+                                    Video Seç
+                                </div>
+
+                                <div class="drop-text">
+                                    Sadece MP4 formatı desteklenir
+                                    <br />
+                                    Maksimum 1GB
+                                </div>
+
+                                <input type="file" id="file" name="VideoDosya" accept="video/mp4" />
+
+                            </div>
+
+                            <div class="file-preview" id="fileName">
+                                Henüz video seçilmedi
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Güvenlik Kodu (@ViewBag.SecurityQuestion)
+                        </label>
+
+                        <input type="text"
+                               name="GuvenlikKodu"
+                               class="modern-input"
+                               placeholder="Sonucu yaz"
+                               inputmode="numeric"
+                               required />
+
+                    </div>
+
+                    <!-- BUTTON -->
+                    <button type="submit" class="btn-upload-modern" id="uploadBtn">
+
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        Videoyu Yayınla
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const fileInput = document.getElementById("file");
+    const fileName = document.getElementById("fileName");
+
+    const coverInput = document.getElementById("cover");
+    const coverName = document.getElementById("coverName");
+
+    const uploadBtn = document.getElementById("uploadBtn");
+
+    const MAX_VIDEO_MB = 1024;
+    const MAX_IMAGE_MB = 5;
+
+    // =========================
+    // VIDEO CHECK
+    // =========================
+    fileInput.onchange = () => {
+
+        const file = fileInput.files[0];
+
+        if (!file) return;
+
+        const sizeMB = file.size / (1024 * 1024);
+
+        // MP4 kontrolü
+        if (!file.name.toLowerCase().endsWith(".mp4")) {
+
+            fileName.innerHTML =
+                "❌ Sadece MP4 formatı destekleniyor.";
+
+            fileName.style.color = "#fca5a5";
+
+            fileInput.value = "";
+
+            uploadBtn.disabled = true;
+
+            return;
+        }
+
+        // MIME type kontrolü
+        if (!file.type.startsWith("video/")) {
+
+            fileName.innerHTML =
+                "❌ Bu dosya bir video değil.";
+
+            fileName.style.color = "#fca5a5";
+
+            fileInput.value = "";
+
+            uploadBtn.disabled = true;
+
+            return;
+        }
+
+        // Boyut kontrolü
+        if (sizeMB > MAX_VIDEO_MB) {
+
+            fileName.innerHTML =
+                "❌ Video çok büyük! Maksimum 1GB yükleyebilirsin.";
+
+            fileName.style.color = "#fca5a5";
+
+            fileInput.value = "";
+
+            uploadBtn.disabled = true;
+
+            return;
+        }
+
+        // Başarılı
+        fileName.innerHTML =
+            "🎥 " + file.name +
+            " • " + sizeMB.toFixed(1) + " MB";
+
+        fileName.style.color = "#bbf7d0";
+
+        uploadBtn.disabled = false;
+    };
+
+
+    // =========================
+    // COVER IMAGE CHECK
+    // =========================
+    coverInput.onchange = () => {
+
+        const file = coverInput.files[0];
+
+        if (!file) return;
+
+        const sizeMB = file.size / (1024 * 1024);
+
+        // İzin verilen uzantılar
+        const allowedExtensions = [
+            ".jpg",
+            ".jpeg",
+            ".png"
+        ];
+
+        const fileExt =
+            "." + file.name.split(".").pop().toLowerCase();
+
+        // Uzantı kontrolü
+        if (!allowedExtensions.includes(fileExt)) {
+
+            coverName.innerHTML =
+                "❌ Sadece JPG, JPEG veya PNG görsel yükleyebilirsin.";
+
+            coverName.style.color = "#fca5a5";
+
+            coverInput.value = "";
+
+            return;
+        }
+
+        // Gerçekten görsel mi?
+        if (!file.type.startsWith("image/")) {
+
+            coverName.innerHTML =
+                "❌ Bu dosya bir görsel değil.";
+
+            coverName.style.color = "#fca5a5";
+
+            coverInput.value = "";
+
+            return;
+        }
+
+        // Boyut kontrolü
+        if (sizeMB > MAX_IMAGE_MB) {
+
+            coverName.innerHTML =
+                "❌ Kapak resmi çok büyük! Maksimum 5MB.";
+
+            coverName.style.color = "#fca5a5";
+
+            coverInput.value = "";
+
+            return;
+        }
+
+        // Başarılı
+        coverName.innerHTML =
+            "🖼️ " + file.name +
+            " • " + sizeMB.toFixed(1) + " MB";
+
+        coverName.style.color = "#bbf7d0";
+    };
+
+
+    // =========================
+    // LOADING
+    // =========================
+    function showLoading() {
+
+        // Video seçilmiş mi
+        if (!fileInput.files.length) {
+
+            alert("Lütfen bir video seç!");
+
+            return false;
+        }
+
+        // Loading ekranı
+        document.getElementById("loadingScreen").style.display = "flex";
+
+        // Butonu kapat
+        uploadBtn.disabled = true;
+
+        return true;
+    }
+
+</script>
